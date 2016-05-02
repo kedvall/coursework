@@ -13,20 +13,7 @@
 #include <RH_ASK.h> //Library for RF communication
 #include <SPI.h> //Not actually used but needed to compile
 #include <NewPing.h> //Library for ultrasonic sonic sensor
-
-//Defines
-//Pins (Pin 11 is reserved for RF Receiver)
-#define LED_PIN           13    //Internal LED pin to flash
-#define TRIGGER_PIN       8     //Arduino pin tied to trigger pin on the ultrasonic sensor.
-#define ECHO_PIN          9     //Arduino pin tied to echo pin on the ultrasonic sensor.
-//Parameters
-#define MAX_DISTANCE      100   //Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm
-#define DIST_THRESHOLD    6     //Threshold distance for ultrasonic sensor
-#define MIN_X             481   //Min x value to escape deadzone (for decreasing x) Defult: 485
-#define MAX_X             497   //Max x value to escape deadzone (for increasing x) Defult: 502
-#define MIN_Y             509   //M\in y value to escape deadzone (for decreasing y) Defult: 509
-#define MAX_Y             525   //Max y value to escape deadzone (for increasing y) Defult: 525
-#define ENABLE_DEBUGGING  0  //Enable or disable USB serial debugging (set 1:TRUE or 0:FALSE)
+#include "CarControlReceive.h" //Header file with various declarations
 
 //Motor and H-Bridge pin setup
 const int EN_LEFT     = 3; //PWM pin, enable12Pin
@@ -35,35 +22,6 @@ const int motor1APin  = 2;
 const int motor2APin  = 4;
 const int motor3APin  = 6;
 const int motor4APin  = 7;
-
-//Initialize stuct to store our data
-struct dataStruct {
-  int xPos;
-  int yPos;
-  bool btnState;
-  long int packetsSent;
-  } dataPacket;
-
-//Enum to better organize travel directions
-enum DIRECTION 
-{
-  deadZone, //Joystick in dead zone
-  posX, //Joystick in positive X direction ONLY
-  negX, //Joystick in negative X direction ONLY
-  posY, //Joystick in positive Y direction ONLY
-  negY, //Joystick in negative Y direction ONLY
-  posXposY, //Joystick in positive X and positive Y direction
-  negXnegY, //Joystick in negative X and negative Y direction
-  posXnegY, //Joystick in positive X direction and negative Y direction
-  negXposY  //Joystick in negative X direction and positive Y direction
-} joystickDir; //Declare var joystickDir of type DIRECTION
-
-//Enum for H-Bridge motor control pin setup
-enum HBRIDGE_PINSET
-{
-  reverseConfig,
-  forwardConfig
-} motorConfig;
 
 //Other Variables
 int yPosMapped;
@@ -146,7 +104,7 @@ void loop()
       //////////////////////
       dir = directionCalc(dataPacket.xPos, dataPacket.yPos, dataPacket.btnState);
 
-      if (dir != NULL)
+      if (dir != -1)
       {
         switch (dir) 
         {
@@ -239,30 +197,46 @@ int directionCalc(int xPos, int yPos, bool btnState)
   {
     //Standard Movements
     if ( (xPos > MAX_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
+    {
       joystickDir = posX; //Case 1: Joystick in positive X direction, move forward
       motorConfig = forwardConfig;
+    }
     else if ( (xPos < MIN_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
+    {
       joystickDir = negX; //Case 2: Joystick in negative X direction, move car backward
       motorConfig = reverseConfig;
+    }
     else if ( (xPos >= MIN_X && xPos <= MAX_X) && (yPos > MAX_Y) )
+    {
       joystickDir = posY; //Case 3: Joystick in positive Y direction, turn right
       motorConfig = reverseConfig;
+    }
     else if ( (xPos >= MIN_X && xPos <= MAX_X) && (yPos < MIN_Y) )
+    {
       joystickDir = negY; //Case 4: Joystick in negative Y direction, turn left
       motorConfig = reverseConfig;
+    }
     //Diagonal Movements
     else if ( (xPos > MAX_X) && (yPos > MAX_Y) )
+    {
       joystickDir = posXposY; //Case 5: Joystick in positive X and positive Y direction, move car forward and turn right
       motorConfig = forwardConfig;
+    }
     else if ( (xPos < MIN_X) && (yPos < MIN_Y) )
+    {
       joystickDir = negXnegY; //Case 6: Joystick in negative X and negative Y direction, move car backward and turn left
       motorConfig = reverseConfig;
+    }
     else if ( (xPos > MAX_X) && (yPos < MIN_Y) )
+    {
       joystickDir = posXnegY; //Case 7: Joystick in positive X direction and negative Y direction, move car forward and turn left
       motorConfig = forwardConfig;
+    }
     else if ( (xPos < MIN_X) && (yPos > MAX_Y) )
+    {
       joystickDir = negXposY; //Case 8: Joystick in negative X direction and positive Y direction, move car backward and turn right
       motorConfig = reverseConfig;
+    }
     else
       joystickDir = deadZone; //Case 9: Joystick is in dead zone
 
@@ -270,7 +244,7 @@ int directionCalc(int xPos, int yPos, bool btnState)
     return joystickDir;
   } //End of direction calculation
   else
-    return NULL; //Return NULL if btnState is toggled to FALSE
+    return -1; //Return -1 if btnState is toggled to FALSE
 } //End of directionCalc function
 
 ///////////////////////////////////////////////////////////////////////
