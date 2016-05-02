@@ -22,9 +22,9 @@
 //Parameters
 #define MAX_DISTANCE      100   //Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm
 #define DIST_THRESHOLD    6     //Threshold distance for ultrasonic sensor
-#define MIN_X             485   //Min x value to escape deadzone (for decreasing x) Defult: 485
-#define MAX_X             501   //Max x value to escape deadzone (for increasing x) Defult: 502
-#define MIN_Y             509   //Min y value to escape deadzone (for decreasing y) Defult: 509
+#define MIN_X             481   //Min x value to escape deadzone (for decreasing x) Defult: 485
+#define MAX_X             497   //Max x value to escape deadzone (for increasing x) Defult: 502
+#define MIN_Y             509   //M\in y value to escape deadzone (for decreasing y) Defult: 509
 #define MAX_Y             525   //Max y value to escape deadzone (for increasing y) Defult: 525
 #define ENABLE_DEBUGGING  0  //Enable or disable USB serial debugging (set 1:TRUE or 0:FALSE)
 
@@ -68,8 +68,6 @@ enum HBRIDGE_PINSET
 //Other Variables
 int yPosMapped;
 int xPosMapped;
-int reverseTime;
-int reverseSpeed;
 
 RH_ASK driver; //Initializes a driver to send/receive data
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); //NewPing setup of pins and maximum distance.
@@ -133,117 +131,87 @@ void loop()
       Serial.print(" packetsSent: ");
       Serial.println(dataPacket.packetsSent);
     }
-
-    // Car control loop
-    if (dataPacket.btnState) //If btnState is true execute car control loop. This way the car starts disabled (in "safe mode").
+    //////////////////////
+    // Car control loop //
+    //////////////////////
+    if ( (sonar.ping_in() < DIST_THRESHOLD) && (sonar.ping_in() != 0) ) //Check if value form ultrasonic sensor is smaller than threshold
     {
-      digitalWrite(LED_PIN, LOW); //Turn off "safe mode" LED
+      reverseCar();
+    } else //Car is under ultrasonic threshold (far enough away from wall)
+    {
       //////////////////////
-      // Reverse Function //
+      // Standard Driving //
       //////////////////////
-      if ( (sonar.ping_in() < DIST_THRESHOLD) && (sonar.ping_in() != 0) ) //Check if value form ultrasonic sensor is smaller than threshold
+      dir = directionCalc(dataPacket.xPos, dataPacket.yPos, dataPacket.btnState);
+
+      switch (dir) 
       {
-        //Reverse with increasing speed over 1.5 seconds
-        for (reverseTime = 0; reverseTime < 50;  reverseTime++)
-        {
-          //Increase speed in negative direction as time increases
-          reverseSpeed = map(reverseTime, 0, 50, 0, 255); //Scale counter to PWM output range
-          //Reverse config
-          digitalWrite(motor3APin, HIGH);
-          digitalWrite(motor4APin, LOW);
-          digitalWrite(motor1APin, LOW);
-          digitalWrite(motor2APin, HIGH);
+        case 0: //deadZone
+          digitalWrite(EN_LEFT, 0); //Disable left motor
+          digitalWrite(EN_RIGHT, 0); //Disable right motor
+          break;
+        case 1: //posX
+          //Map enable values
+          xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
           //Use PWM to control enable
-          digitalWrite(EN_LEFT, reverseSpeed);
-          digitalWrite(EN_RIGHT, reverseSpeed);
-
-          if (ENABLE_DEBUGGING) //Print to serial console for debugging
-          {
-            Serial.print("Ping: ");
-            Serial.print(sonar.ping_in());
-            Serial.print(" Speed: ");
-            Serial.println(reverseSpeed);
-          }
-        }
-        //Stop reversing
-        digitalWrite(EN_LEFT, 0);
-        digitalWrite(EN_RIGHT, 0);
-        delay(250);
-      } else //Car is under ultrasonic threshold (far enough away from wall)
-      {
-        //////////////////////
-        // Standard Driving //
-        //////////////////////
-        dir = directionCalc(dataPacket.xPos, dataPacket.yPos, dataPacket.btnState);
-
-        switch (dir) 
-        {
-          case 0: //deadZone
-            digitalWrite(EN_LEFT, 0); //Disable left motor
-            digitalWrite(EN_RIGHT, 0); //Disable right motor
-            break;
-          case 1: //posX
-            //Map enable values
-            xPosMapped = map(dataPacket.xPos, 498, 1023, 0, 255); //As x increases, both en increase in positive direction
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, xPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
-            break;
-          case 2: //negX
-            //Map enable values
-            xPosMapped = map(dataPacket.xPos, 0, 489, 255, 0); //As x decreases, both en increase in negative direction
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, xPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
-            break;
-          case 3: //posY
-            //Map enable values
-            yPosMapped = map(dataPacket.yPos, 521, 1023, 0, 255); //As y increases, left en increases in positive direction
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, yPosMapped);
-            digitalWrite(EN_RIGHT, 0);
-            break;
-          case 4: //negY
-            //Map enable values
-            yPosMapped = map(dataPacket.yPos, 0, 513, 255, 0); //As y decreases, right en increases in positive direction
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, 0);
-            digitalWrite(EN_RIGHT, yPosMapped);
-            break;
-          case 5: //posXposY
-            //Map enable values
-            xPosMapped = map(dataPacket.xPos, 498, 1023, 0, 255); //As x increases, both en increase in positive direction
-            yPosMapped = map(dataPacket.yPos, 521, 1023, 255, 0); //As y increases, right en decreases
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, xPosMapped);
-            digitalWrite(EN_RIGHT, yPosMapped);
-            break;
-          case 6: //negXnegY
-            //Map enable values
-            xPosMapped = map(dataPacket.xPos, 0, 489, 255, 0); //As x decreases, both en increase in negative direction
-            yPosMapped = map(dataPacket.yPos, 0, 513, 0, 255); //As y decreases, left en decreases            //Use PWM to control enable
-            digitalWrite(EN_LEFT, yPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
-            break;
-          case 7: //posXnegY
-            //Map enable values
-            xPosMapped = map(dataPacket.xPos, 498, 1023, 0, 255); //As x increases, both en increase in positive direction
-            yPosMapped = map(dataPacket.yPos, 0, 513, 0, 255); //As y decreases, left en decreases
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, yPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
-            break;
-          case 8: //negXposY
-            //Map enable values
-            xPosMapped = map(dataPacket.xPos, 498, 1023, 0, 255); //As x decreases, both en increase in negative direction
-            yPosMapped = map(dataPacket.yPos, 521, 1023, 255, 0); //As y increases, right en decreases
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, yPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
-            break;    
-        } //End of switch statement
-      } //End of ultrasonic checking block
-    } //End of btnState checking block
+          digitalWrite(EN_LEFT, xPosMapped);
+          digitalWrite(EN_RIGHT, xPosMapped);
+          break;
+        case 2: //negX
+          //Map enable values
+          xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
+          //Use PWM to control enable
+          digitalWrite(EN_LEFT, xPosMapped);
+          digitalWrite(EN_RIGHT, xPosMapped);
+          break;
+        case 3: //posY
+          //Map enable values
+          yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 0, 255); //As y increases, left en increases in positive direction
+          //Use PWM to control enable
+          digitalWrite(EN_LEFT, yPosMapped);
+          digitalWrite(EN_RIGHT, 0);
+          break;
+        case 4: //negY
+          //Map enable values
+          yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 255, 0); //As y decreases, right en increases in positive direction
+          //Use PWM to control enable
+          digitalWrite(EN_LEFT, 0);
+          digitalWrite(EN_RIGHT, yPosMapped);
+          break;
+        case 5: //posXposY
+          //Map enable values
+          xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
+          yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 255, 0); //As y increases, right en decreases
+          //Use PWM to control enable
+          digitalWrite(EN_LEFT, xPosMapped);
+          digitalWrite(EN_RIGHT, yPosMapped);
+          break;
+        case 6: //negXnegY
+          //Map enable values
+          xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
+          yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 0, 255); //As y decreases, left en decreases            
+          //Use PWM to control enable
+          digitalWrite(EN_LEFT, yPosMapped);
+          digitalWrite(EN_RIGHT, xPosMapped);
+          break;
+        case 7: //posXnegY
+          //Map enable values
+          xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
+          yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 0, 255); //As y decreases, left en decreases
+          //Use PWM to control enable
+          digitalWrite(EN_LEFT, yPosMapped);
+          digitalWrite(EN_RIGHT, xPosMapped);
+          break;
+        case 8: //negXposY
+          //Map enable values
+          xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x decreases, both en increase in negative direction
+          yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 255, 0); //As y increases, right en decreases
+          //Use PWM to control enable
+          digitalWrite(EN_LEFT, yPosMapped);
+          digitalWrite(EN_RIGHT, xPosMapped);
+          break;    
+      } //End of switch statement
+    } //End of ultrasonic checking block
   } //End of RF checking block
 } //End of main control loop
 
@@ -305,8 +273,8 @@ void setHBridge(HBRIDGE_PINSET motorConfig)
   {
     digitalWrite(motor3APin, HIGH);
     digitalWrite(motor4APin, LOW);
-    digitalWrite(motor1APin, HIGH);
-    digitalWrite(motor2APin, LOW);
+    digitalWrite(motor1APin, LOW);
+    digitalWrite(motor2APin, HIGH);
   }
   else
   {
@@ -316,3 +284,40 @@ void setHBridge(HBRIDGE_PINSET motorConfig)
     digitalWrite(motor2APin, LOW);
   }
 }
+
+///////////////////////////////////////////////////////////////////////
+// Function: reverseCar                                              //
+// Accelerate car backward (When ultrasonic sensor detects objects)  //
+// This will eventually be expanded to be dynamic based on speed     //
+///////////////////////////////////////////////////////////////////////
+void reverseCar()
+{ 
+  int reverseTime;
+  int reverseSpeed;
+
+  motorConfig = forwardConfig;
+  setHBridge(motorConfig);
+
+  //Reverse with increasing speed over 50 loops 
+  for (reverseTime = 0; reverseTime < 50;  reverseTime++)
+  {
+    //Increase speed in negative direction as time increases
+    reverseSpeed = map(reverseTime, 0, 50, 0, 255); //Scale counter to PWM output range
+    //Use PWM to control enable
+    digitalWrite(EN_LEFT, reverseSpeed);
+    digitalWrite(EN_RIGHT, reverseSpeed);
+
+    if (ENABLE_DEBUGGING) //Print to serial console for debugging
+    {
+      Serial.print("Ping: ");
+      Serial.print(sonar.ping_in());
+      Serial.print(" Speed: ");
+      Serial.println(reverseSpeed);
+    }
+  }
+
+  //Stop reversing
+  digitalWrite(EN_LEFT, 0);
+  digitalWrite(EN_RIGHT, 0);
+  delay(250);
+} //End of reverseCar function
