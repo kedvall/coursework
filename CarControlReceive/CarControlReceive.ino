@@ -26,7 +26,7 @@
 #define MAX_X             501   //Max x value to escape deadzone (for increasing x) Defult: 502
 #define MIN_Y             509   //Min y value to escape deadzone (for decreasing y) Defult: 509
 #define MAX_Y             525   //Max y value to escape deadzone (for increasing y) Defult: 525
-#define ENABLE_DEBUGGING  TRUE  //Enable or disable USB serial debugging (set TRUE or FALSE)
+#define ENABLE_DEBUGGING  0  //Enable or disable USB serial debugging (set 1:TRUE or 0:FALSE)
 
 //Motor and H-Bridge pin setup
 const int EN_LEFT     = 3; //PWM pin, enable12Pin
@@ -42,7 +42,21 @@ struct dataStruct {
   int yPos;
   bool btnState;
   long int packetsSent;
-} dataPacket;
+  } dataPacket;
+
+//Enum to better organize travel directions
+enum DIRECTION 
+{
+  deadZone, //Joystick in dead zone
+  posX, //Joystick in positive X direction ONLY
+  negX, //Joystick in negative X direction ONLY
+  posY, //Joystick in positive Y direction ONLY
+  negY, //Joystick in negative Y direction ONLY
+  posXposY, //Joystick in positive X and positive Y direction
+  negXnegY, //Joystick in negative X and negative Y direction
+  posXnegY, //Joystick in positive X direction and negative Y direction
+  negXposY  //Joystick in negative X direction and positive Y direction
+} travelDir; //Declare var travelDir of type DIRECTION
 
 //Other Variables
 int yPosMapped;
@@ -54,17 +68,17 @@ RH_ASK driver; //Initializes a driver to send/receive data
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); //NewPing setup of pins and maximum distance.
 
 ///////////////////////////////////////////////////////////////////////
-// Initial Setup                                                     //
-// Starts serial debugging session at 9600 baud                      //
-// Checks for correct driver initialization                          //
-// Sets up pins for H-Brdige                                         //
+// Initial Setup:                                                    //
+//    Starts serial debugging session at 9600 baud                   //
+//    Checks for correct driver initialization                       //
+//    Sets up pins for H-Brdige                                      //
 ///////////////////////////////////////////////////////////////////////
 void setup() {
   //Serial console for debugging
   Serial.begin(9600); //Start serial debugging session at 9600 baud
   Serial.println("Init setup");
   if (!driver.init())
-    Serial.println("Init failed");
+  Serial.println("Init failed");
 
   //H-Bridge enable pins
   pinMode(EN_RIGHT, OUTPUT); //right motor enable pin
@@ -78,7 +92,7 @@ void setup() {
 } //End of setup
 
 ///////////////////////////////////////////////////////////////////////
-// Main control loop                                                 //
+// Main control loop:                                                //
 //    Reads data from RF Receiver and updates struct variables       //
 //    Reads data from Ultrasonic sensors for obstacle avoidance      //
 //    Drives H-Bridge using PWM to control motors and drive car      //
@@ -88,9 +102,11 @@ void setup() {
 //        motor3APin and motor4APin = left motor control             //
 //        motor1APin and motor2APin = right motor control            //
 ///////////////////////////////////////////////////////////////////////
-void loop() {
+void loop() 
+{
   uint8_t buf[RH_ASK_MAX_MESSAGE_LEN]; //Buffer for receiving data
   uint8_t buflen = sizeof(buf); //Length of buffer
+  int dir;
 
   if (driver.recv(buf, &buflen)) //Check if RF Receiver if receiving data (non-blocking)
   {
@@ -141,80 +157,73 @@ void loop() {
             Serial.print(" Speed: ");
             Serial.println(reverseSpeed);
           }
-
         }
         //Stop reversing
         digitalWrite(EN_LEFT, 0);
         digitalWrite(EN_RIGHT, 0);
         delay(250);
-
-      }
-      //////////////////////
-      // Standard Driving //
-      //////////////////////
-      else //Car is under ultrasonic threshold (far enough away from wall)
+      } else //Car is under ultrasonic threshold (far enough away from wall)
       {
-        //Nine possible cases:
-        //Xinc, Xdec, Yinc, Ydec, Xinc & Yinc, Xdec & Ydec, Xinc & Ydec, Xdec & Yinc, Dead zone
-        //+X = Forward, -X = Reverse, +Y = Turn right, -Y = Turn left
-        if ( (dataPacket.xPos > MAX_X) && (dataPacket.yPos >= MIN_Y && dataPacket.yPos <= MAX_Y) )
-          //Case 1: Xinc, move car forward
-        {
-          //Map enable values
-          xPosMapped = map(dataPacket.xPos, 498, 1023, 0, 255); //As x increases, both en increase in positive direction
-          //Forward config
-          digitalWrite(motor3APin, HIGH);
-          digitalWrite(motor4APin, LOW);
-          digitalWrite(motor1APin, LOW);
-          digitalWrite(motor2APin, HIGH);
-          //Use PWM to control enable
-          digitalWrite(EN_LEFT, xPosMapped);
-          digitalWrite(EN_RIGHT, xPosMapped);
-        } else if ( (dataPacket.xPos < MIN_X) && (dataPacket.yPos >= MIN_Y && dataPacket.yPos <= MAX_Y) )
-          //Case 2: Xdec, move car backward
-        {
-          //Map enable values
-          xPosMapped = map(dataPacket.xPos, 0, 489, 255, 0); //As x decreases, both en increase in negative direction
-          //Reverse config
-          digitalWrite(motor3APin, LOW);
-          digitalWrite(motor4APin, HIGH);
-          digitalWrite(motor1APin, HIGH);
-          digitalWrite(motor2APin, LOW);
-          //Use PWM to control enable
-          digitalWrite(EN_LEFT, xPosMapped);
-          digitalWrite(EN_RIGHT, xPosMapped);
-        } else if ( (dataPacket.xPos >= MIN_X && dataPacket.xPos <= MAX_X) && (dataPacket.yPos < MIN_Y) )
-          //Case 3: Yinc, turn right
-        {
-          //Map enable values
-          yPosMapped = map(dataPacket.yPos, 521, 1023, 0, 255); //As y increases, left en increases in positive direction
-          //Forward config
-          digitalWrite(motor3APin, LOW);
-          digitalWrite(motor4APin, HIGH);
-          digitalWrite(motor1APin, HIGH);
-          digitalWrite(motor2APin, LOW);
-          //Use PWM to control enable
-          digitalWrite(EN_LEFT, yPosMapped);
-          digitalWrite(EN_RIGHT, 0);
-        } else if ( (dataPacket.xPos >= MIN_X && dataPacket.xPos <= MAX_X) && (dataPacket.yPos > MAX_Y) )
-          //Case 4: Ydec, turn left
-        {
-          //Map enable values
-          yPosMapped = map(dataPacket.yPos, 0, 513, 255, 0); //As y decreases, right en increases in positive direction
-          //Forward config
-          digitalWrite(motor3APin, LOW);
-          digitalWrite(motor4APin, HIGH);
-          digitalWrite(motor1APin, HIGH);
-          digitalWrite(motor2APin, LOW);
-          //Use PWM to control enable
-          digitalWrite(EN_LEFT, 0);
-          digitalWrite(EN_RIGHT, yPosMapped);
+        //////////////////////
+        // Standard Driving //
+        //////////////////////
+        dir = directionCalc(dataPacket.xPos, dataPacket.yPos, dataPacket.btnState);
 
-          //Diagonal Movements - Temporarily disabled due to sporadic movement
-          /* Uncomment to enable
-          } else if ( (dataPacket.xPos > MAX_X) && (dataPacket.yPos > MAX_Y) )
-            //Case 5: Xinc & Yinc, move car forward and turn right
-          {
+        switch (dir) 
+        {
+          case 0: //deadZone
+            digitalWrite(EN_LEFT, 0); //Disable left motor
+            digitalWrite(EN_RIGHT, 0); //Disable right motor
+            break;
+          case 1: //posX
+            //Map enable values
+            xPosMapped = map(dataPacket.xPos, 498, 1023, 0, 255); //As x increases, both en increase in positive direction
+            //Forward config
+            digitalWrite(motor3APin, HIGH);
+            digitalWrite(motor4APin, LOW);
+            digitalWrite(motor1APin, LOW);
+            digitalWrite(motor2APin, HIGH);
+            //Use PWM to control enable
+            digitalWrite(EN_LEFT, xPosMapped);
+            digitalWrite(EN_RIGHT, xPosMapped);
+            break;
+          case 2: //negX
+            //Map enable values
+            xPosMapped = map(dataPacket.xPos, 0, 489, 255, 0); //As x decreases, both en increase in negative direction
+            //Reverse config
+            digitalWrite(motor3APin, LOW);
+            digitalWrite(motor4APin, HIGH);
+            digitalWrite(motor1APin, HIGH);
+            digitalWrite(motor2APin, LOW);
+            //Use PWM to control enable
+            digitalWrite(EN_LEFT, xPosMapped);
+            digitalWrite(EN_RIGHT, xPosMapped);
+            break;
+          case 3: //posY
+            //Map enable values
+            yPosMapped = map(dataPacket.yPos, 521, 1023, 0, 255); //As y increases, left en increases in positive direction
+            //Forward config
+            digitalWrite(motor3APin, LOW);
+            digitalWrite(motor4APin, HIGH);
+            digitalWrite(motor1APin, HIGH);
+            digitalWrite(motor2APin, LOW);
+            //Use PWM to control enable
+            digitalWrite(EN_LEFT, yPosMapped);
+            digitalWrite(EN_RIGHT, 0);
+            break;
+          case 4: //negY
+            //Map enable values
+            yPosMapped = map(dataPacket.yPos, 0, 513, 255, 0); //As y decreases, right en increases in positive direction
+            //Forward config
+            digitalWrite(motor3APin, LOW);
+            digitalWrite(motor4APin, HIGH);
+            digitalWrite(motor1APin, HIGH);
+            digitalWrite(motor2APin, LOW);
+            //Use PWM to control enable
+            digitalWrite(EN_LEFT, 0);
+            digitalWrite(EN_RIGHT, yPosMapped);
+            break;
+          case 5: //posXposY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 498, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = map(dataPacket.yPos, 521, 1023, 255, 0); //As y increases, right en decreases
@@ -226,9 +235,8 @@ void loop() {
             //Use PWM to control enable
             digitalWrite(EN_LEFT, xPosMapped);
             digitalWrite(EN_RIGHT, yPosMapped);
-          } else if ( (dataPacket.xPos < MIN_X) && (dataPacket.yPos < MIN_Y) )
-            //Case 6: Xdec & Ydec, move car backward and turn left
-          {
+            break;
+          case 6: //negXnegY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 0, 489, 255, 0); //As x decreases, both en increase in negative direction
             yPosMapped = map(dataPacket.yPos, 0, 513, 0, 255); //As y decreases, left en decreases
@@ -240,9 +248,8 @@ void loop() {
             //Use PWM to control enable
             digitalWrite(EN_LEFT, yPosMapped);
             digitalWrite(EN_RIGHT, xPosMapped);
-          } else if ( (dataPacket.xPos > MAX_X) && (dataPacket.yPos < MIN_Y) )
-            //Case 7: Xinc & Ydec
-          {
+            break;
+          case 7: //posXnegY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 498, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = map(dataPacket.yPos, 0, 513, 0, 255); //As y decreases, left en decreases
@@ -254,9 +261,8 @@ void loop() {
             //Use PWM to control enable
             digitalWrite(EN_LEFT, yPosMapped);
             digitalWrite(EN_RIGHT, xPosMapped);
-          } else if ( (dataPacket.xPos < MIN_X) && (dataPacket.yPos > 520) )
-            //Case 8: Xdec & Yinc
-          {
+            break;
+          case 8: //negXposY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 498, 1023, 0, 255); //As x decreases, both en increase in negative direction
             yPosMapped = map(dataPacket.yPos, 521, 1023, 255, 0); //As y increases, right en decreases
@@ -268,20 +274,47 @@ void loop() {
             //Use PWM to control enable
             digitalWrite(EN_LEFT, yPosMapped);
             digitalWrite(EN_RIGHT, xPosMapped);
-          */
-        } else
-          //Case 9: Dead zone, stop car
-          //Range (for reference) = ( (dataPacket.xPos >= 490 && dataPacket.xPos <= 497) && (dataPacket.yPos >= 514 && dataPacket.yPos <= 520) )
-        {
-          digitalWrite(EN_LEFT, 0);
-          digitalWrite(EN_RIGHT, 0);
-        }
+            break;    
+        } //End of switch statement
       } //End of ultrasonic checking block
-    } else
-    {
-      digitalWrite(EN_LEFT, 0); //Disable left motor
-      digitalWrite(EN_RIGHT, 0); //Disable right motor
-      digitalWrite(LED_PIN, HIGH); //Turn "safe mode" LED on
     } //End of btnState checking block
   } //End of RF checking block
 } //End of main control loop
+
+///////////////////////////////////////////////////////////////////////
+// Function: directionCalc                                           //
+// Finds and returns the region joystick is in (NULL if deadzone)    //
+// Nine possible cases:                                              //
+//    Dead zone, Xinc, Xdec, Yinc, Ydec,                             //
+//    Xinc & Yinc, Xdec & Ydec, Xinc & Ydec, Xdec & Yinc             //
+// Map to: +X (Forward) -X (Reverse) +Y (Turn right) -Y (Turn left)  //
+///////////////////////////////////////////////////////////////////////
+int directionCalc(int xPos, int yPos, bool btnState) 
+{
+  if (btnState) //btnState has been toggled to TRUE
+  {
+    //Standard Movements
+    if ( (xPos > MAX_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
+      travelDir = posX; //Case 1: Joystick in positive X direction, move forward
+    else if ( (xPos < MIN_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
+      travelDir = negX; //Case 2: Joystick in negative X direction, move car backward
+    else if ( (xPos >= MIN_X && xPos <= MAX_X) && (yPos > MAX_Y) )
+      travelDir = posY; //Case 3: Joystick in positive Y direction, turn right
+    else if ( (xPos >= MIN_X && xPos <= MAX_X) && (yPos < MIN_Y) )
+      travelDir = negY; //Case 4: Joystick in negative Y direction, turn left
+    //Diagonal Movements
+    else if ( (xPos > MAX_X) && (yPos > MAX_Y) )
+      travelDir = posXposY; //Case 5: Joystick in positive X and positive Y direction, move car forward and turn right
+    else if ( (xPos < MIN_X) && (yPos < MIN_Y) )
+      travelDir = negXnegY; //Case 6: Joystick in negative X and negative Y direction, move car backward and turn left
+    else if ( (xPos > MAX_X) && (yPos < MIN_Y) )
+      travelDir = posXnegY; //Case 7: Joystick in positive X direction and negative Y direction, move car forward and turn left
+    else if ( (xPos < MIN_X) && (yPos > MAX_Y) )
+      travelDir = negXposY; //Case 8: Joystick in negative X direction and positive Y direction, move car backward and turn right
+    else
+      travelDir = deadZone; //Case 9: Joystick is in dead zone
+    return travelDir;
+  } //End of direction calculation
+  else
+    return NULL; //Return NULL if btnState is toggled to FALSE
+} //End of directionCalc function
