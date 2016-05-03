@@ -16,12 +16,13 @@
 #include "CarControlReceive.h" //Header file with various declarations
 
 //Motor and H-Bridge pin setup
+//Motor 1 = Right motor, Motor 2 = Left motor
 const int EN_LEFT     = 3; //PWM pin, enable12Pin
 const int EN_RIGHT    = 5; //PWM pin, enable34Pin
 const int motor1APin  = 2;
 const int motor2APin  = 4;
 const int motor3APin  = 6;
-const int motor4APin  = 7;
+const int motor4APin  = 7; 
 
 //Other Variables
 int yPosMapped;
