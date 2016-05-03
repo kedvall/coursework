@@ -25,7 +25,6 @@
 #define MAX_X             497   //Max x value to escape deadzone (for increasing x) Defult: 502
 #define MIN_Y             509   //M\in y value to escape deadzone (for decreasing y) Defult: 509
 #define MAX_Y             525   //Max y value to escape deadzone (for increasing y) Defult: 525
-#define ENABLE_DEBUGGING  0  //Enable or disable USB serial debugging (set 1:TRUE or 0:FALSE)
 
 //Initialize stuct to store our data
 struct dataStruct {

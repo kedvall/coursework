@@ -15,6 +15,9 @@
 #include <NewPing.h> //Library for ultrasonic sonic sensor
 #include "CarControlReceive.h" //Header file with various declarations
 
+//Debugging
+bool enableDebugging = false; //Enable or disable USB serial debugging (set true or false)
+
 //Motor and H-Bridge pin setup
 //Motor 1 = Right motor, Motor 2 = Left motor
 const int EN_RIGHT    = 5; //PWM pin, enable34Pin
@@ -87,10 +90,10 @@ void loop()
   int dir;
 
   //Temporary statements for debugging only. To make sure using pins 0 and 1 doesn't interfere with RF transmitter
-  /**************************************************************************************************************/
+  /**************************************************************************************************************
   Serial.print("EN_LEFT: ");
   Serial.print(EN_LEFT);
-  Serial.print("motor1APin: ");
+  Serial.print(" motor1APin: ");
   Serial.println(motor1APin);
   /**************************************************************************************************************/
 
@@ -99,7 +102,7 @@ void loop()
     //Good checksum, dump message;
     memcpy(&dataPacket, buf, sizeof(dataPacket)); //Reserve memory for received data (based on size of data)
 
-    if (ENABLE_DEBUGGING) //Print to serial console for debugging
+    if (enableDebugging) //Print to serial console for debugging
     {
       Serial.print("Ping: ");
       Serial.print(sonar.ping_in());
@@ -117,7 +120,7 @@ void loop()
     //////////////////////
     if ( (sonar.ping_in() < DIST_THRESHOLD) && (sonar.ping_in() != 0) ) //Check if value form ultrasonic sensor is smaller than threshold
     {
-      if (dataPacket.btnState) //btnState has been toggled to TRUE
+      if (dataPacket.btnState) //btnState has been toggled to true
         reverseCar();
     } 
     else //Car is under ultrasonic threshold (far enough away from wall)
@@ -126,62 +129,74 @@ void loop()
       // Standard Driving //
       //////////////////////
       dir = directionCalc(dataPacket.xPos, dataPacket.yPos, dataPacket.btnState);
+      Serial.print(" dir: ");
+      Serial.println(dir);
 
       if (dir != -1)
       {
+        digitalWrite(LED_PIN, LOW); //Turn off safe mode LED
         switch (dir) 
         {
           case 0: //deadZone
             digitalWrite(EN_LEFT, 0); //Disable left motor
             digitalWrite(EN_RIGHT, 0); //Disable right motor
+            Serial.println("  case 0");
             break;
           case 1: //posX
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = 0;
             chooseScale(xPosMapped, yPosMapped);
+            Serial.println("  case 1");
             break;
           case 2: //negX
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
             yPosMapped = 0;
             chooseScale(xPosMapped, yPosMapped);
+            Serial.println("  case 2");
             break;
           case 3: //posY
             //Map enable values
             xPosMapped = 0;
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 0, 255); //As y increases, left en increases in positive direction
             chooseScale(xPosMapped, yPosMapped);
+            Serial.println("  case 3");
             break;
           case 4: //negY
             //Map enable values
             xPosMapped = 0;
             yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 255, 0); //As y decreases, right en increases in positive direction
             chooseScale(xPosMapped, yPosMapped);
+            Serial.println("  case 4");
             break;
           case 5: //posXposY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 255, 0); //As y increases, right en decreases
             chooseScale(xPosMapped, yPosMapped);
+            Serial.println("  case 5");
             break;
           case 6: //negXnegY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
             yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 0, 255); //As y decreases, left en decreases
             chooseScale(xPosMapped, yPosMapped);
+            Serial.println("  case 6");
             break;
           case 7: //posXnegY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 0, 255); //As y decreases, left en decreases
             chooseScale(xPosMapped, yPosMapped);
+            Serial.println("  case 7");
             break;
           case 8: //negXposY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x decreases, both en increase in negative direction
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 255, 0); //As y increases, right en decreases
             chooseScale(xPosMapped, yPosMapped);
+            Serial.println("  case 8");
             break;    
         } //End of switch statement
       } //End of btnState TRUE block
@@ -189,6 +204,7 @@ void loop()
       {
         digitalWrite(EN_LEFT, 0); //Disable left motor
         digitalWrite(EN_RIGHT, 0); //Disable right motor
+        digitalWrite(LED_PIN, HIGH); //Turn on safe mode LED
       } //End of btnState checking block
     } //End of ultrasonic checking block
   } //End of RF checking block
@@ -302,7 +318,7 @@ void reverseCar()
     digitalWrite(EN_LEFT, reverseSpeed);
     digitalWrite(EN_RIGHT, reverseSpeed);
 
-    if (ENABLE_DEBUGGING) //Print to serial console for debugging
+    if (enableDebugging) //Print to serial console for debugging
     {
       Serial.print("Ping: ");
       Serial.print(sonar.ping_in());

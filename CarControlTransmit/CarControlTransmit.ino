@@ -15,10 +15,11 @@
 #include <Wire.h> //Wire framework
 
 //Defines
-#define LED_PIN 13
-#define BUTTON_PIN A0
-#define Y_PIN A1
-#define X_PIN A2
+#define LED_PIN           13
+#define BUTTON_PIN        A0
+#define Y_PIN             A1
+#define X_PIN             A2
+#define ENABLE_DEBUGGING  1   //Enable or disable USB serial debugging (set 1:TRUE or 0:FALSE)
 
 //Initialize stuct to store our data
 struct dataStruct {
@@ -50,6 +51,8 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT);
   pinMode(X_PIN, INPUT);
   pinMode(Y_PIN, INPUT);
+
+  btnState = false;
 } //End of setup
 
 ///////////////////////////////////////////////////////////////////////
@@ -68,17 +71,17 @@ void loop() {
   memcpy(tx_buf, &dataPacket, sizeof(dataPacket));//Reserve memory for data to be transmitted (based on size of data)
   byte zize = sizeof(dataPacket); //Find size of data to be sent
 
-  //Print to serial console for debugging (Uncomment to check raw values being transmitted)
-  /*
-  Serial.print("xPos: ");
-  Serial.print(dataPacket.xPos);
-  Serial.print(" yPos: ");
-  Serial.print(dataPacket.yPos);
-  Serial.print(" btnState: ");
-  Serial.print(dataPacket.btnState);
-  Serial.print(" packetsSent: ");
-  Serial.println(dataPacket.packetsSent);
-  */
+  if (ENABLE_DEBUGGING) //Print to serial console for debugging
+  {
+    Serial.print("xPos: ");
+    Serial.print(dataPacket.xPos);
+    Serial.print(" yPos: ");
+    Serial.print(dataPacket.yPos);
+    Serial.print(" btnState: ");
+    Serial.print(dataPacket.btnState);
+    Serial.print(" packetsSent: ");
+    Serial.println(dataPacket.packetsSent);
+  }
   
   //Transmit data
   driver.send((uint8_t *)tx_buf, zize); //Send data using RF Transmitter
