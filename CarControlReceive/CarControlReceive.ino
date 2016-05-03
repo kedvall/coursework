@@ -152,6 +152,7 @@ void loop()
             xPosMapped = 0;
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 0, 255); //As y increases, left en increases in positive direction
             chooseScale(xPosMapped, yPosMapped);
+            break;
           case 4: //negY
             //Map enable values
             xPosMapped = 0;
@@ -325,29 +326,36 @@ int chooseScale(xVal, yVal)
 {
   if (xVal != 0 && yVal == 0)
   {
-    if ( (timeDiffR < timeDiffL) && (xVal < 255 / (dimeDiffR / timeDiffL)) ) //Right wheel is spinning faster, try to increase left wheel
+    //ratio = timeDiffR/timeDiffL, right/left > 1 when right is greater
+    if (timeDiffR < timeDiffL) //Right wheel is spinning faster, try to increase left wheel
     {
-      //Use PWM to control enable
-      digitalWrite(EN_RIGHT, xPosMapped);
-      digitalWrite(EN_LEFT, xPosMapped * (timeDiffL / timeDiffR));
+      if (xVal < 255 / (timeDiffL / timeDiffR))
+      {
+        //Use PWM to control enable
+        digitalWrite(EN_RIGHT, xVal);
+        digitalWrite(EN_LEFT, xVal * (timeDiffL / timeDiffR));
+      }
+      else
+      {
+        //Use PWM to control enable
+        digitalWrite(EN_RIGHT, xVal * (timeDiffR / timeDiffL));
+        digitalWrite(EN_LEFT, xVal);
+      }
     }
-    else if ( (timeDiffR < timeDiffL) && (xVal > 255 / (dimeDiffR / timeDiffL)) ) //Can't increase left wheel due to PWM bounds, decrease right
-    {
-      //Use PWM to control enable
-      digitalWrite(EN_RIGHT, xPosMapped * (timeDiffR / timeDiffL));
-      digitalWrite(EN_LEFT, xPosMapped);
-    }
-    else if ( (timeDiffL < timeDiffR) && (xVal < 255 / (dimeDiffL / timeDiffR)) ) //Left wheel is spinning faster, try to increase right wheel
-    {
-      //Use PWM to control enable
-      digitalWrite(EN_RIGHT, xPosMapped * (timeDiffL / timeDiffR));
-      digitalWrite(EN_LEFT, xPosMapped);
-    }
-    else if ( (timeDiffL < timeDiffR) && (xVal > 255 / (dimeDiffL / timeDiffR)) ) //Can't increase right wheel due to PWM bounds, decrease left
-    {
-      //Use PWM to control enable
-      digitalWrite(EN_RIGHT, xPosMapped * (timeDiffR / timeDiffL));
-      digitalWrite(EN_LEFT, xPosMapped);
+    else if ( (timeDiffL < timeDiffR) 
+    { 
+      if (xVal < 255 / (timeDiffR / timeDiffL)) ) //Left wheel is spinning faster, try to increase right wheel
+      {
+        //Use PWM to control enable
+        digitalWrite(EN_RIGHT, xVal * (timeDiffR / timeDiffL));
+        digitalWrite(EN_LEFT, xVal);
+      }
+      else
+      {
+        //Use PWM to control enable
+        digitalWrite(EN_RIGHT, xVal * (timeDiffL / timeDiffR));
+        digitalWrite(EN_LEFT, xVal);
+      }
     }
   }
   // else if (xVal != 0 && yVal != 0)
@@ -362,7 +370,7 @@ int chooseScale(xVal, yVal)
 void timeRecordR()
 {
   timeTriggeredR = millis();
-  timeDiffR = (timeTriggeredR - prevTimeR) / timeTriggeredR;
+  timeDiffR = timeTriggeredR - prevTimeR;
   prevTimeR = timeTriggeredR;
 } //End of timeRecordR ISR
 
