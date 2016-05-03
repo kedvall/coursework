@@ -17,16 +17,22 @@
 
 //Motor and H-Bridge pin setup
 //Motor 1 = Right motor, Motor 2 = Left motor
-const int EN_LEFT     = 3; //PWM pin, enable12Pin
 const int EN_RIGHT    = 5; //PWM pin, enable34Pin
-const int motor1APin  = 2;
+const int EN_LEFT     = 6; //PWM pin, enable12Pin
+const int motor1APin  = 1;
 const int motor2APin  = 4;
-const int motor3APin  = 6;
-const int motor4APin  = 7; 
+const int motor3APin  = 7;
+const int motor4APin  = 8; 
 
 //Other Variables
 int yPosMapped;
 int xPosMapped;
+volatile unsigned int prevTimeR = millis();
+volatile unsigned int prevTimeL = millis();
+volatile unsigned int timeTriggeredR;
+volatile unsigned int timeTriggeredL;
+volatile int speedDiffR;
+volatile int speedDiffL;
 
 RH_ASK driver; //Initializes a driver to send/receive data
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); //NewPing setup of pins and maximum distance.
@@ -36,6 +42,7 @@ NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); //NewPing setup of pins and 
 //    Starts serial debugging session at 9600 baud                   //
 //    Checks for correct driver initialization                       //
 //    Sets up pins for H-Brdige                                      //
+//    Attaches interrupts for encoder feedback                       //
 ///////////////////////////////////////////////////////////////////////
 void setup() {
   //Serial console for debugging
@@ -44,6 +51,9 @@ void setup() {
   if (!driver.init())
     Serial.println("Init failed");
 
+  //Interrupt pins for encoders
+  pinMode(R_INTERRUPT_PIN, INPUT_PULLUP);
+  pinMode(L_INTERRUPT_PIN, INPUT_PULLUP);
   //H-Bridge enable pins
   pinMode(EN_RIGHT, OUTPUT); //right motor enable pin
   pinMode(EN_LEFT, OUTPUT); //left motor enable pin
@@ -53,6 +63,10 @@ void setup() {
   //Right motor H-Bridge - 1 High 2 Low = Forward
   pinMode(motor1APin, OUTPUT);
   pinMode(motor2APin, OUTPUT);
+
+  //Attach interrupts for encoder feedback
+  attachInterrupt(digitalPinToInterrupt(R_INTERRUPT_PIN), timeRecordR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(L_INTERRUPT_PIN), timeRecordL, CHANGE);
 } //End of setup
 
 ///////////////////////////////////////////////////////////////////////
@@ -71,6 +85,14 @@ void loop()
   uint8_t buf[RH_ASK_MAX_MESSAGE_LEN]; //Buffer for receiving data
   uint8_t buflen = sizeof(buf); //Length of buffer
   int dir;
+
+  //Temporary statements for debugging only. To make sure using pins 0 and 1 doesn't interfere with RF transmitter
+  /**************************************************************************************************************/
+  Serial.print("EN_LEFT: ");
+  Serial.print(EN_LEFT);
+  Serial.print("motor1APin: ");
+  Serial.println(motor1APin);
+  /**************************************************************************************************************/
 
   if (driver.recv(buf, &buflen)) //Check if RF Receiver if receiving data (non-blocking)
   {
@@ -306,3 +328,27 @@ void reverseCar()
   digitalWrite(EN_RIGHT, 0);
   delay(250);
 } //End of reverseCar function
+
+///////////////////////////////////////////////////////////////////////
+// Function: compensateRight                                         //
+// Adjust PWM output to right motor based on encoder feedback        //
+// This function is an ISR (Interrupt Service Routine)               //
+///////////////////////////////////////////////////////////////////////
+void timeRecordR()
+{
+  timeTriggeredR = millis();
+  speedDiffR = (timeTriggeredR - prevTimeR) / timeTriggeredR;
+  prevTimeR = timeTriggeredR;
+}
+
+///////////////////////////////////////////////////////////////////////
+// Function: compensateLeft                                          //
+// Adjust PWM output to left motor based on encoder feedback         //
+// This function is an ISR (Interrupt Service Routine)               //
+///////////////////////////////////////////////////////////////////////
+void timeRecordL()
+{
+  timeTriggeredL = millis();
+  speedDiffL = (timeTriggeredL - prevTimeL) / timeTriggeredL;
+  prevTimeL = timeTriggeredL;
+}

@@ -13,11 +13,14 @@
 //Defines
 //Pins (Pin 11 is reserved for RF Receiver)
 #define LED_PIN           13    //Internal LED pin to flash
-#define TRIGGER_PIN       8     //Arduino pin tied to trigger pin on the ultrasonic sensor.
-#define ECHO_PIN          9     //Arduino pin tied to echo pin on the ultrasonic sensor.
+#define TRIGGER_PIN       9     //Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ECHO_PIN          10    //Arduino pin tied to echo pin on the ultrasonic sensor.
+#define R_INTERRUPT_PIN   2     //Arduino pin for input from right encoder
+#define L_INTERRUPT_PIN   3     //Arduino pin for input from left encoder
 //Parameters
 #define MAX_DISTANCE      100   //Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm
 #define DIST_THRESHOLD    6     //Threshold distance for ultrasonic sensor
+#define ENCODER_DELAY     2     //Number (in milliseconds) to wait before reading new encoder value. Default: 2ms = 500Hz
 #define MIN_X             481   //Min x value to escape deadzone (for decreasing x) Defult: 485
 #define MAX_X             497   //Max x value to escape deadzone (for increasing x) Defult: 502
 #define MIN_Y             509   //M\in y value to escape deadzone (for decreasing y) Defult: 509
