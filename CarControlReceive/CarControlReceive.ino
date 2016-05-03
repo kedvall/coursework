@@ -20,12 +20,12 @@ bool enableDebugging = false; //Enable or disable USB serial debugging (set true
 
 //Motor and H-Bridge pin setup
 //Motor 1 = Right motor, Motor 2 = Left motor
-const int EN_RIGHT    = 5; //PWM pin, enable34Pin
-const int EN_LEFT     = 6; //PWM pin, enable12Pin
-const int motor1APin  = 1;
-const int motor2APin  = 4;
-const int motor3APin  = 7;
-const int motor4APin  = 8; 
+const int EN_LEFT     = 5; //Pin 1 on H-Bridge, enable12Pin, maps to left wheel
+const int EN_RIGHT    = 6; //Pin 9 on H-Bridge, enable34Pin, maps to right wheel
+const int motor1APin  = 4; //Pin 2 on H-Bridge
+const int motor2APin  = 7; //Pin 7 on H-Bridge
+const int motor3APin  = 8; //Pin 10 on H-Bridge
+const int motor4APin  = 9; //Pin 15 on H-Bridge
 
 //Other Variables
 int yPosMapped;

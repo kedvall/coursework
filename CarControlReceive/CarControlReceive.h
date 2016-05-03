@@ -1,20 +1,20 @@
 /**********************************************************************
 *                                                                     *
 * Header file for CarControlReceive.ino                               *
-* Written by Kanyon Edvall					                          *
+* Written by Kanyon Edvall					                                  *
 *                                                                     *
 * This header file was created to satisfy Arduino's requirement for   *
 * enums to be declared seperately from the main sketch as noted here: *
-* - http://www.arduino.cc/en/Hacking/BuildProcess					  *
-* - http://stackoverflow.com/questions/18158136/					  *
-*		why-cant-i-pass-typedef-or-enum-in-arduino     				  *
+* - http://www.arduino.cc/en/Hacking/BuildProcess				           	  *
+* - http://stackoverflow.com/questions/18158136/					            *
+*		why-cant-i-pass-typedef-or-enum-in-arduino     				            *
 *                                                                     *
 **********************************************************************/
 //Defines
 //Pins (Pin 11 is reserved for RF Receiver)
 #define LED_PIN           13    //Internal LED pin to flash
-#define TRIGGER_PIN       9     //Arduino pin tied to trigger pin on the ultrasonic sensor.
-#define ECHO_PIN          10    //Arduino pin tied to echo pin on the ultrasonic sensor.
+#define TRIGGER_PIN       10    //Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ECHO_PIN          12    //Arduino pin tied to echo pin on the ultrasonic sensor.
 #define R_INTERRUPT_PIN   2     //Arduino pin for input from right encoder
 #define L_INTERRUPT_PIN   3     //Arduino pin for input from left encoder
 //Parameters
