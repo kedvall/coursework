@@ -31,8 +31,8 @@ volatile unsigned int prevTimeR = millis();
 volatile unsigned int prevTimeL = millis();
 volatile unsigned int timeTriggeredR;
 volatile unsigned int timeTriggeredL;
-volatile int speedDiffR;
-volatile int speedDiffL;
+volatile int timeDiffR;
+volatile int timeDiffL;
 
 RH_ASK driver; //Initializes a driver to send/receive data
 NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); //NewPing setup of pins and maximum distance.
@@ -138,62 +138,49 @@ void loop()
           case 1: //posX
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, xPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
+            yPosMapped = 0;
+            chooseScale(xPosMapped, yPosMapped);
             break;
           case 2: //negX
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, xPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
+            yPosMapped = 0;
+            chooseScale(xPosMapped, yPosMapped);
             break;
           case 3: //posY
             //Map enable values
+            xPosMapped = 0;
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 0, 255); //As y increases, left en increases in positive direction
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, yPosMapped);
-            digitalWrite(EN_RIGHT, 0);
-            break;
+            chooseScale(xPosMapped, yPosMapped);
           case 4: //negY
             //Map enable values
+            xPosMapped = 0;
             yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 255, 0); //As y decreases, right en increases in positive direction
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, 0);
-            digitalWrite(EN_RIGHT, yPosMapped);
+            chooseScale(xPosMapped, yPosMapped);
             break;
           case 5: //posXposY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 255, 0); //As y increases, right en decreases
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, xPosMapped);
-            digitalWrite(EN_RIGHT, yPosMapped);
+            chooseScale(xPosMapped, yPosMapped);
             break;
           case 6: //negXnegY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
-            yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 0, 255); //As y decreases, left en decreases            
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, yPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
+            yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 0, 255); //As y decreases, left en decreases
+            chooseScale(xPosMapped, yPosMapped);
             break;
           case 7: //posXnegY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 0, 255); //As y decreases, left en decreases
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, yPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
+            chooseScale(xPosMapped, yPosMapped);
             break;
           case 8: //negXposY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x decreases, both en increase in negative direction
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 255, 0); //As y increases, right en decreases
-            //Use PWM to control enable
-            digitalWrite(EN_LEFT, yPosMapped);
-            digitalWrite(EN_RIGHT, xPosMapped);
+            chooseScale(xPosMapped, yPosMapped);
             break;    
         } //End of switch statement
       } //End of btnState TRUE block
@@ -330,6 +317,44 @@ void reverseCar()
 } //End of reverseCar function
 
 ///////////////////////////////////////////////////////////////////////
+// Function: chooseScale                                             //
+// Decide which output should be scaled to compensate motor diffs    //
+// Always scales output up unless max output value is reached        //
+///////////////////////////////////////////////////////////////////////
+int chooseScale(xVal, yVal)
+{
+  if (xVal != 0 && yVal == 0)
+  {
+    if ( (timeDiffR < timeDiffL) && (xVal < 255 / (dimeDiffR / timeDiffL)) ) //Right wheel is spinning faster, try to increase left wheel
+    {
+      //Use PWM to control enable
+      digitalWrite(EN_RIGHT, xPosMapped);
+      digitalWrite(EN_LEFT, xPosMapped * (timeDiffL / timeDiffR));
+    }
+    else if ( (timeDiffR < timeDiffL) && (xVal > 255 / (dimeDiffR / timeDiffL)) ) //Can't increase left wheel due to PWM bounds, decrease right
+    {
+      //Use PWM to control enable
+      digitalWrite(EN_RIGHT, xPosMapped * (timeDiffR / timeDiffL));
+      digitalWrite(EN_LEFT, xPosMapped);
+    }
+    else if ( (timeDiffL < timeDiffR) && (xVal < 255 / (dimeDiffL / timeDiffR)) ) //Left wheel is spinning faster, try to increase right wheel
+    {
+      //Use PWM to control enable
+      digitalWrite(EN_RIGHT, xPosMapped * (timeDiffL / timeDiffR));
+      digitalWrite(EN_LEFT, xPosMapped);
+    }
+    else if ( (timeDiffL < timeDiffR) && (xVal > 255 / (dimeDiffL / timeDiffR)) ) //Can't increase right wheel due to PWM bounds, decrease left
+    {
+      //Use PWM to control enable
+      digitalWrite(EN_RIGHT, xPosMapped * (timeDiffR / timeDiffL));
+      digitalWrite(EN_LEFT, xPosMapped);
+    }
+  }
+  // else if (xVal != 0 && yVal != 0)
+  // Speed compensation for diagonal movements, disabled for now
+} //End of chooseScale function
+
+///////////////////////////////////////////////////////////////////////
 // Function: compensateRight                                         //
 // Adjust PWM output to right motor based on encoder feedback        //
 // This function is an ISR (Interrupt Service Routine)               //
@@ -337,9 +362,9 @@ void reverseCar()
 void timeRecordR()
 {
   timeTriggeredR = millis();
-  speedDiffR = (timeTriggeredR - prevTimeR) / timeTriggeredR;
+  timeDiffR = (timeTriggeredR - prevTimeR) / timeTriggeredR;
   prevTimeR = timeTriggeredR;
-}
+} //End of timeRecordR ISR
 
 ///////////////////////////////////////////////////////////////////////
 // Function: compensateLeft                                          //
@@ -349,6 +374,6 @@ void timeRecordR()
 void timeRecordL()
 {
   timeTriggeredL = millis();
-  speedDiffL = (timeTriggeredL - prevTimeL) / timeTriggeredL;
+  timeDiffL = (timeTriggeredL - prevTimeL) / timeTriggeredL;
   prevTimeL = timeTriggeredL;
-}
+} //End of timeRecordL ISR
