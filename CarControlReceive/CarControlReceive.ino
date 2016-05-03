@@ -322,7 +322,7 @@ void reverseCar()
 // Decide which output should be scaled to compensate motor diffs    //
 // Always scales output up unless max output value is reached        //
 ///////////////////////////////////////////////////////////////////////
-int chooseScale(xVal, yVal)
+ int chooseScale(int xVal, int yVal)
 {
   if (xVal != 0 && yVal == 0)
   {
@@ -342,9 +342,9 @@ int chooseScale(xVal, yVal)
         digitalWrite(EN_LEFT, xVal);
       }
     }
-    else if ( (timeDiffL < timeDiffR) 
+    else if (timeDiffL < timeDiffR) 
     { 
-      if (xVal < 255 / (timeDiffR / timeDiffL)) ) //Left wheel is spinning faster, try to increase right wheel
+      if (xVal < 255 / (timeDiffR / timeDiffL)) //Left wheel is spinning faster, try to increase right wheel
       {
         //Use PWM to control enable
         digitalWrite(EN_RIGHT, xVal * (timeDiffR / timeDiffL));
