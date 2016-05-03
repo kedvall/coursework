@@ -25,7 +25,7 @@ struct dataStruct {
   int xPos;
   int yPos;
   bool btnState;
-  long int packetsSent;
+  unsigned long int packetsSent;
 } dataPacket;
 
 byte tx_buf[sizeof(dataPacket)] = {0}; //Create buffer the size of our struct var

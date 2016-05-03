@@ -29,7 +29,7 @@ struct dataStruct {
   int xPos;
   int yPos;
   bool btnState;
-  long int packetsSent;
+  unsigned long int packetsSent;
   } dataPacket;
 
 //Enum to better organize travel directions
