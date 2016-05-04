@@ -219,14 +219,14 @@ int directionCalc(int xPos, int yPos, bool btnState)
   if (btnState) //btnState has been toggled to TRUE
   {
     //Standard Movements
-    if ( (xPos > MAX_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
+    if ( (xPos < MIN_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
     {
-      joystickDir = negX; //Case 1: Joystick in positive X direction, move forward
+      joystickDir = posX; //Case 1: Joystick in positive X direction, move forward
       motorConfig = reverseConfig;
     }
-    else if ( (xPos < MIN_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
+    else if ( (xPos > MAX_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
     {
-      joystickDir = posX; //Case 2: Joystick in negative X direction, move car backward
+      joystickDir = negX; //Case 2: Joystick in negative X direction, move car backward
       motorConfig = forwardConfig;
     }
     else if ( (xPos >= MIN_X && xPos <= MAX_X) && (yPos > MAX_Y) )
@@ -278,31 +278,34 @@ void setHBridge(HBRIDGE_PINSET motorConfig)
 {
   //Pins 1A and 2A must be opposite and pins 3A and 4A must be opposite
   //Pins 1 & 2 map to left motor, Pins 3 & 4 maps to right motor
-
-  //Config 1 (forwardConfig):
-  //H, L, L, H - Wheels spin forward
-  if (!motorConfig)
+  switch (motorConfig)
   {
-    digitalWrite(motor1APin, HIGH);
-    digitalWrite(motor2APin, LOW);
-    digitalWrite(motor3APin, LOW);
-    digitalWrite(motor4APin, HIGH);
+    case 0: //Config 0 (forwardConfig): H, L, L, H - Wheels spin forward
+      digitalWrite(motor1APin, HIGH);
+      digitalWrite(motor2APin, LOW);
+      digitalWrite(motor3APin, LOW);
+      digitalWrite(motor4APin, HIGH);
+      break;
+    case 1: //Config 1 (reverseConfig): L, H, H, L - Wheels spin backward
+      digitalWrite(motor1APin, LOW);
+      digitalWrite(motor2APin, HIGH);
+      digitalWrite(motor3APin, HIGH);
+      digitalWrite(motor4APin, LOW);
+      break;
+    case 2: //Config 2 (rotateRConfig): H, L, H, L - Left wheel spins forward, right wheel spins backward
+      digitalWrite(motor1APin, HIGH);
+      digitalWrite(motor2APin, LOW);
+      digitalWrite(motor3APin, HIGH);
+      digitalWrite(motor4APin, LOW);
+      break;
+    case 3: //Config  (rotateLConfig): L, H, L, H - Left wheel spinds backward, right wheel spins forward
+      digitalWrite(motor1APin, LOW);
+      digitalWrite(motor2APin, HIGH);
+      digitalWrite(motor3APin, LOW);
+      digitalWrite(motor4APin, HIGH);
+      break;
   }
-  //Config 2 (reverseConfig):
-  //L, H, H, L - Wheels spin backward
-  else if (motorConfig)
-  {
-    digitalWrite(motor1APin, LOW);
-    digitalWrite(motor2APin, HIGH);
-    digitalWrite(motor3APin, HIGH);
-    digitalWrite(motor4APin, LOW);
-  }
-  //Config 3 (rotateRConfig):
-  //H, L, H, L - Left wheel spins forward, right wheel spins backward
-
-  //Config  (rotateLConfig):
-  //L, H, L, H - Left wheel spinds backward, right wheel spins forward
-}
+} //End of setHBridge function
 
 ///////////////////////////////////////////////////////////////////////
 // Function: reverseCar                                              //
