@@ -146,35 +146,38 @@ void loop()
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = 0;
-            digitalWrite(EN_LEFT, 255); //Disable left motor
-            digitalWrite(EN_RIGHT, 255); //Disable right motor
+            digitalWrite(EN_LEFT, xPosMapped); 
+            digitalWrite(EN_RIGHT, xPosMapped);
             //chooseScale(xPosMapped, yPosMapped);            
             break;
           case 2: //negX
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
             yPosMapped = 0;
-            digitalWrite(EN_LEFT, 255); //Disable left motor
-            digitalWrite(EN_RIGHT, 255); //Disable right motor
+            digitalWrite(EN_LEFT, xPosMapped);
+            digitalWrite(EN_RIGHT, xPosMapped);
             //chooseScale(xPosMapped, yPosMapped);            
             break;
           case 3: //posY
             //Map enable values
             xPosMapped = 0;
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 0, 255); //As y increases, left en increases in positive direction
-            chooseScale(xPosMapped, yPosMapped);            
+            digitalWrite(EN_LEFT, yPosMapped);
+            digitalWrite(EN_RIGHT, yPosMapped);
             break;
           case 4: //negY
             //Map enable values
             xPosMapped = 0;
             yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 255, 0); //As y decreases, right en increases in positive direction
-            chooseScale(xPosMapped, yPosMapped);            
+            digitalWrite(EN_LEFT, yPosMapped);
+            digitalWrite(EN_RIGHT, yPosMapped);          
             break;
           case 5: //posXposY
             //Map enable values
-            xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
+            xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 255, 0); //As y increases, right en decreases
-            chooseScale(xPosMapped, yPosMapped);            
+            digitalWrite(EN_LEFT, xPosMapped);
+            digitalWrite(EN_RIGHT, yPosMapped);           
             break;
           case 6: //negXnegY
             //Map enable values
@@ -232,15 +235,15 @@ int directionCalc(int xPos, int yPos, bool btnState)
     else if ( (xPos >= MIN_X && xPos <= MAX_X) && (yPos > MAX_Y) )
     {
       joystickDir = posY; //Case 3: Joystick in positive Y direction, turn right
-      motorConfig = reverseConfig;
+      motorConfig = rotateRConfig;
     }
     else if ( (xPos >= MIN_X && xPos <= MAX_X) && (yPos < MIN_Y) )
     {
       joystickDir = negY; //Case 4: Joystick in negative Y direction, turn left
-      motorConfig = reverseConfig;
+      motorConfig = rotateLConfig;
     }
     //Diagonal Movements
-    else if ( (xPos > MAX_X) && (yPos > MAX_Y) )
+    else if ( (xPos < MIN_X) && (yPos > MAX_Y) )
     {
       joystickDir = posXposY; //Case 5: Joystick in positive X and positive Y direction, move car forward and turn right
       motorConfig = forwardConfig;
