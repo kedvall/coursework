@@ -129,8 +129,8 @@ void loop()
       // Standard Driving //
       //////////////////////
       dir = directionCalc(dataPacket.xPos, dataPacket.yPos, dataPacket.btnState);
-      Serial.print(" dir: ");
-      Serial.println(dir);
+      Serial.print("joystick: ");
+      Serial.println(joystickDir);
 
       if (dir != -1)
       {
@@ -140,63 +140,59 @@ void loop()
           case 0: //deadZone
             digitalWrite(EN_LEFT, 0); //Disable left motor
             digitalWrite(EN_RIGHT, 0); //Disable right motor
-            Serial.println("  case 0");
+            
             break;
           case 1: //posX
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = 0;
-            chooseScale(xPosMapped, yPosMapped);
-            Serial.println("  case 1");
+            digitalWrite(EN_LEFT, 255); //Disable left motor
+            digitalWrite(EN_RIGHT, 255); //Disable right motor
+            //chooseScale(xPosMapped, yPosMapped);            
             break;
           case 2: //negX
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
             yPosMapped = 0;
-            chooseScale(xPosMapped, yPosMapped);
-            Serial.println("  case 2");
+            digitalWrite(EN_LEFT, 255); //Disable left motor
+            digitalWrite(EN_RIGHT, 255); //Disable right motor
+            //chooseScale(xPosMapped, yPosMapped);            
             break;
           case 3: //posY
             //Map enable values
             xPosMapped = 0;
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 0, 255); //As y increases, left en increases in positive direction
-            chooseScale(xPosMapped, yPosMapped);
-            Serial.println("  case 3");
+            chooseScale(xPosMapped, yPosMapped);            
             break;
           case 4: //negY
             //Map enable values
             xPosMapped = 0;
             yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 255, 0); //As y decreases, right en increases in positive direction
-            chooseScale(xPosMapped, yPosMapped);
-            Serial.println("  case 4");
+            chooseScale(xPosMapped, yPosMapped);            
             break;
           case 5: //posXposY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 255, 0); //As y increases, right en decreases
-            chooseScale(xPosMapped, yPosMapped);
-            Serial.println("  case 5");
+            chooseScale(xPosMapped, yPosMapped);            
             break;
           case 6: //negXnegY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, 0, MIN_X-1, 255, 0); //As x decreases, both en increase in negative direction
             yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 0, 255); //As y decreases, left en decreases
-            chooseScale(xPosMapped, yPosMapped);
-            Serial.println("  case 6");
+            chooseScale(xPosMapped, yPosMapped);            
             break;
           case 7: //posXnegY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x increases, both en increase in positive direction
             yPosMapped = map(dataPacket.yPos, 0, MIN_Y-1, 0, 255); //As y decreases, left en decreases
-            chooseScale(xPosMapped, yPosMapped);
-            Serial.println("  case 7");
+            chooseScale(xPosMapped, yPosMapped);            
             break;
           case 8: //negXposY
             //Map enable values
             xPosMapped = map(dataPacket.xPos, MAX_X+1, 1023, 0, 255); //As x decreases, both en increase in negative direction
             yPosMapped = map(dataPacket.yPos, MAX_Y+1, 1023, 255, 0); //As y increases, right en decreases
             chooseScale(xPosMapped, yPosMapped);
-            Serial.println("  case 8");
             break;    
         } //End of switch statement
       } //End of btnState TRUE block
@@ -225,13 +221,13 @@ int directionCalc(int xPos, int yPos, bool btnState)
     //Standard Movements
     if ( (xPos > MAX_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
     {
-      joystickDir = posX; //Case 1: Joystick in positive X direction, move forward
-      motorConfig = forwardConfig;
+      joystickDir = negX; //Case 1: Joystick in positive X direction, move forward
+      motorConfig = reverseConfig;
     }
     else if ( (xPos < MIN_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
     {
-      joystickDir = negX; //Case 2: Joystick in negative X direction, move car backward
-      motorConfig = reverseConfig;
+      joystickDir = posX; //Case 2: Joystick in negative X direction, move car backward
+      motorConfig = forwardConfig;
     }
     else if ( (xPos >= MIN_X && xPos <= MAX_X) && (yPos > MAX_Y) )
     {
@@ -280,20 +276,32 @@ int directionCalc(int xPos, int yPos, bool btnState)
 ///////////////////////////////////////////////////////////////////////
 void setHBridge(HBRIDGE_PINSET motorConfig)
 {
-  if (motorConfig)
+  //Pins 1A and 2A must be opposite and pins 3A and 4A must be opposite
+  //Pins 1 & 2 map to left motor, Pins 3 & 4 maps to right motor
+
+  //Config 1 (forwardConfig):
+  //H, L, L, H - Wheels spin forward
+  if (!motorConfig)
   {
-    digitalWrite(motor3APin, HIGH);
-    digitalWrite(motor4APin, LOW);
-    digitalWrite(motor1APin, LOW);
-    digitalWrite(motor2APin, HIGH);
-  }
-  else
-  {
-    digitalWrite(motor3APin, LOW);
-    digitalWrite(motor4APin, HIGH);
     digitalWrite(motor1APin, HIGH);
     digitalWrite(motor2APin, LOW);
+    digitalWrite(motor3APin, LOW);
+    digitalWrite(motor4APin, HIGH);
   }
+  //Config 2 (reverseConfig):
+  //L, H, H, L - Wheels spin backward
+  else if (motorConfig)
+  {
+    digitalWrite(motor1APin, LOW);
+    digitalWrite(motor2APin, HIGH);
+    digitalWrite(motor3APin, HIGH);
+    digitalWrite(motor4APin, LOW);
+  }
+  //Config 3 (rotateRConfig):
+  //H, L, H, L - Left wheel spins forward, right wheel spins backward
+
+  //Config  (rotateLConfig):
+  //L, H, L, H - Left wheel spinds backward, right wheel spins forward
 }
 
 ///////////////////////////////////////////////////////////////////////

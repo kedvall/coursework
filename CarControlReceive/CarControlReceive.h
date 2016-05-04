@@ -51,6 +51,8 @@ enum DIRECTION
 //Enum for H-Bridge motor control pin setup
 enum HBRIDGE_PINSET
 {
+  forwardConfig,
   reverseConfig,
-  forwardConfig
+  rotateRConfig,
+  rotateLConfig  
 } motorConfig;
