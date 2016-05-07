@@ -225,7 +225,7 @@ int directionCalc(int xPos, int yPos, bool btnState)
     if ( (xPos > MAX_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
     {
       joystickDir = posX; //Case 1: Joystick in positive X direction, move forward
-      motorConfig = reverseConfig;
+      motorConfig = forwardConfig;
     }
     else if ( (xPos < MIN_X) && (yPos >= MIN_Y && yPos <= MAX_Y) )
     {

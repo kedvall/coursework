@@ -52,7 +52,7 @@ void setup() {
   pinMode(X_PIN, INPUT);
   pinMode(Y_PIN, INPUT);
 
-  btnState = false;
+  dataPacket.btnState = false;
 } //End of setup
 
 ///////////////////////////////////////////////////////////////////////
