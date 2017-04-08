@@ -1,0 +1,24 @@
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+# Aliases
+alias h=history
+alias j=jobs
+alias l='ls -last'
+alias rd=pushd
+alias gdb='gdb -q'
+alias mk='touch /workdir/mp3/scripts/inUse ; make clean ; make dep ; make 2>&1 | tee make_log.txt ; rm -f /workdir/mp3/scripts/inUse'
+alias eb='vim ~/.bashrc ; . ~/.bashrc'
+
+# UNAME is automatically replaced with your Windows username
+SHAREUSER=UNAME
+
+export SHAREUSER
+/root/mntdrives
+
+# Change start dir
+cd /workdir/mp3/student-distrib/
