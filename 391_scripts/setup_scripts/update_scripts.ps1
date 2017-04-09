@@ -33,25 +33,43 @@ Remove-Item $output
 
 # Change our working dir
 $temp = $wd
-$wd = "$($wd)$fn\"
+$wd = "$($wd)$fn\$fn\"
 
-# Kill the current process if it's running
-Stop-Process -name "runTest" -ErrorAction SilentlyContinue
+# Stop Process if it is running
+if ( !((Get-Process runTest -ErrorAction SilentlyContinue) -eq $null))
+{
+    Stop-Process -processname runTest
+    Write-Output "Killed runTest process"
+}
 
 # Copy the downloaded file to startup, then execute it
 Copy-Item -force "$($wd)runTest.exe" "$start" -ErrorAction SilentlyContinue
+Write-Output "New runtest process copied to startup dir"
 
 # Start process located in startup dir
 Start-Process -FilePath "$($start)runTest.exe"
+Write-Output "Restarted new runTest process"
 
 
 # Update bashrc
-Start-Process -FilePath "$($wd)updateBashrc.exe"
+Write-Output ""
+$answer = Read-Host "Update bashrc? (Y/N) "
+while("y","Y","n","N" -notcontains $answer)
+{
+    $answer = Read-Host "Please answer y or n"
+}
+
+Switch ($answer) 
+{
+   Y {Write-host "Updating!"; Start-Process -FilePath "$($wd)updateBashrc.exe" ; Write-host "Bashrc updated!"} 
+   N {break}
+}
 
 
 # Clean up
 Remove-Item "$($temp)$fn" -Recurse -Force -ErrorAction SilentlyContinue
 
-Write-Host "Update successful!"
+Write-Output ""
+Write-Host "Script updated successfully!"
 Write-Host "Press any key to exit..."
 $x = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
