@@ -1,0 +1,5 @@
+make -C /home/user/build M=/workdir/mp2/module modules
+make[1]: Entering directory `/home/user/build'
+make -C /workdirmain/work/source/linux-2.6.22.5 O=/home/user/build modules
+  CC [M]  /workdir/mp2/module/tuxctl-ioctl.o
+make[1]: Leaving directory `/home/user/build'

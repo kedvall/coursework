@@ -1,0 +1,13 @@
+K 10
+svn:author
+V 4
+user
+K 8
+svn:date
+V 27
+2009-08-26T01:39:14.452846Z
+K 7
+svn:log
+V 55
+Initial import of linux-2.6.22.5 source tree for ECE391
+END

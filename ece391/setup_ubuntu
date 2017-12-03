@@ -1,0 +1,51 @@
+#!/bin/bash
+
+echo '################################################################'
+echo '#                                                              #'
+echo '#            ECE391 Localized Development Environment          #'
+echo '#                                                              #'
+echo '#                     Created by Fei Deng                      #'
+echo '#                                                              #'
+echo '#                          2017.01.14                          #'
+echo '#                                                              #'
+echo '################################################################'
+
+current_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+vm_dir="${current_dir}/ece391_share/work/vm"
+image_dir="${current_dir}/image/ece391.qcow"
+kernel_dir="${current_dir}/ece391_share/work/source/linux-2.6.22.5/bzImage"
+smb_user=''
+
+echo "Installing qemu and samba..."
+sudo apt-get install -y qemu qemu-system-x86 samba
+
+if [ ! -d "${vm_dir}" ]; then
+    mkdir -p "${vm_dir}"
+fi
+
+if [ ! -f "${vm_dir}/devel.qcow" ]; then
+    qemu-img create -b "${image_dir}" -f qcow2 "${vm_dir}/devel.qcow"
+fi
+
+if [ ! -f "${vm_dir}/test.qcow" ]; then
+    qemu-img create -b "${image_dir}" -f qcow2 "${vm_dir}/test.qcow"
+fi
+
+echo '#!/bin/bash' > ~/Desktop/devel
+echo "qemu-system-i386 -hda \"${vm_dir}/devel.qcow\" -m 512 -name devel" >> ~/Desktop/devel
+echo '#!/bin/bash' > ~/Desktop/test_debug
+echo "qemu-system-i386 -hda \"${vm_dir}/test.qcow\" -m 512 -name test -gdb tcp:127.0.0.1:1234 -S -kernel \"${kernel_dir}\"" >> ~/Desktop/test_debug
+echo '#!/bin/bash' > ~/Desktop/test_nodebug
+echo "qemu-system-i386 -hda \"${vm_dir}/test.qcow\" -m 512 -name test -gdb tcp:127.0.0.1:1234 -kernel \"${kernel_dir}\"" >> ~/Desktop/test_nodebug
+
+chmod a+x ~/Desktop/devel ~/Desktop/test_debug ~/Desktop/test_nodebug
+gsettings set org.gnome.nautilus.preferences executable-text-activation 'launch'
+
+while [ -z "$smb_user" ]; do
+    printf 'Please enter a samba share user name: '
+    read smb_user
+done
+
+echo "Adding samba user \"${smb_user}\""
+sudo smbpasswd -a "$smb_user"
+
