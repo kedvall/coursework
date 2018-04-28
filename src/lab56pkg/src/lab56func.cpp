@@ -583,8 +583,8 @@ void drawCrosshairs(int pixellabel[][640], int num_rows, int num_cols, int centr
 // Find the world coordinates given the camera row and column in pixels
 void translate_to_world_coords(float col_in_pixels, float row_in_pixels, float *x_world, float *y_world) {
     // Constants to be measured
-    float adjusted_origin_row = 391.0;
-    float adjusted_origin_col = 420.0;
+    float adjusted_origin_row = 409.0;
+    float adjusted_origin_col = 368.0;
 
     float theta = -PI; // adjust as necessary +/-
     float center_row_camera_frame = 480/2; // O_r
