@@ -519,11 +519,10 @@ int findCentroids(int pixellabel[][640], int num_rows, int num_cols, int num_obj
             // cout << "dividing colsum: " << rowSum << " by totalpixels: " << totalPixels << " gives: " << colSum/totalPixels << endl;
             centroidRows[object] = rowSum/totalPixels;
             centroidCols[object] = colSum/totalPixels;
-            found_centroids += 1;
+            found_centroids++;
         }
         else
             cout << "too few pixels " << endl;
-            return 0;
     }
     return found_centroids;
 }
