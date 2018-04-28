@@ -599,17 +599,11 @@ void translate_to_world_coords(float col_in_pixels, float row_in_pixels, float *
     cout << "row_adjustment: " << row_adjustment << endl;
     cout << "col_adjustment: " << col_adjustment << endl;
 
-    float point_row_in_pixels_adjusted = row_in_pixels - row_adjustment;
-    float point_col_in_pixels_adjusted = col_in_pixels - col_adjustment;
+    float point_row_in_pixels_adjusted = row_in_pixels + row_adjustment;
+    float point_col_in_pixels_adjusted = col_in_pixels + col_adjustment;
 
     cout << "adjusted point row: " << point_row_in_pixels_adjusted << endl;
     cout << "adjusted point col: " << point_col_in_pixels_adjusted << endl;
-
-    float translated_point_row = 480 - point_row_in_pixels_adjusted;
-    float translated_point_col = 640 - point_col_in_pixels_adjusted;
-
-    cout << "translated_point_row: " << translated_point_row << endl;
-    cout << "translated_point_col: " << translated_point_col << endl;
 
     float origin_x_in_cm = 424/pixel_to_cm_scaling_factor; // T_x
     float origin_y_in_cm = 396/pixel_to_cm_scaling_factor; // T_y
