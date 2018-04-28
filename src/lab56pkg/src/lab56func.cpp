@@ -599,8 +599,8 @@ void translate_to_world_coords(float col_in_pixels, float row_in_pixels, float *
     cout << "row_adjustment: " << row_adjustment << endl;
     cout << "col_adjustment: " << col_adjustment << endl;
 
-    float point_row_in_pixels_adjusted = row_in_pixels + row_adjustment;
-    float point_col_in_pixels_adjusted = col_in_pixels + col_adjustment;
+    float point_row_in_pixels_adjusted = row_in_pixels - row_adjustment;
+    float point_col_in_pixels_adjusted = col_in_pixels - col_adjustment;
 
     cout << "adjusted point row: " << point_row_in_pixels_adjusted << endl;
     cout << "adjusted point col: " << point_col_in_pixels_adjusted << endl;
