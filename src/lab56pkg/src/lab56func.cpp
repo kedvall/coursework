@@ -27,6 +27,7 @@ int noiseEliminate(int pixellabel[][640], int num_rows, int num_cols,int num_lab
 int findCentroids(int pixellabel[][640], int num_rows, int num_cols, int num_objects, int centroidRows[], int centroidCols[]);
 void drawCrosshairs(int pixellabel[][640], int num_rows, int num_cols, int centroidX[], int centroidY[], int num_objects);
 void translate_to_world_coords(float row_in_pixels, float col_in_pixels, float *x_world, float *y_world);
+void find_wc(float row_in_pixels, float col_in_pixels, float *x_world, float *y_world);
 
 //constructor(don't modify)
 ImageConverter::ImageConverter():it_(nh_)
@@ -164,7 +165,6 @@ Mat ImageConverter::thresholdImage(Mat gray_img)
 // You will implement your algorithm for rastering here
 Mat ImageConverter::associateObjects(Mat bw_img)
 {
-    cout << "Entered" << __func__ << endl;
     // Labels for numbers
     int label_len = 4200;
     const int white = 255; const int black = 0;
@@ -366,12 +366,10 @@ Mat ImageConverter::associateObjects(Mat bw_img)
  //lab4 and lab3 functions can be used since it is included in the "lab4.h"
 void onMouse(int event, int x, int y, int flags, void* userdata)
 {
-    cout << "Entered" << __func__ << endl;
 		ic_ptr->onClick(event,x,y,flags,userdata);
 }
 void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 {
-    cout << "Entered" << __func__ << endl;
     float x_world;
     float y_world;
     float row_in_pixels, col_in_pixels;
@@ -388,7 +386,7 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
             cout << "left click! Row, Col in pixels: (" << row_in_pixels << ", " << col_in_pixels << ")" << endl;
 
 			// put your left click code here
-            translate_to_world_coords(row_in_pixels, col_in_pixels, &x_world, &y_world);
+            find_wc(row_in_pixels, col_in_pixels, &x_world, &y_world);
             cout << "Coord x_world: " << x_world << endl;
             cout << "Coord y_world: " << y_world << endl;
 
@@ -419,7 +417,6 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 // If there's no valid neighbor, return -1
 int getLeftPixel(int pixellabel[][640], int row, int col)
 {
-    cout << "Entered" << __func__ << endl;
     // Check if we are operating on the top row or the leftmost column
     if (col != 0)
         return pixellabel[row][col-1];
@@ -432,7 +429,6 @@ int getLeftPixel(int pixellabel[][640], int row, int col)
 // If there's no valid neighbor, return -1
 int getAbovePixel(int pixellabel[][640], int row, int col)
 {
-    cout << "Entered" << __func__ << endl;
     // Check if we are operating on the top row or the leftmost column
     if (row != 0)
         return pixellabel[row-1][col];
@@ -447,7 +443,6 @@ int getAbovePixel(int pixellabel[][640], int row, int col)
 // returns the final number of objects in the image, and modifies pixellabel in place.
 int noiseEliminate(int pixellabel[][640], int num_rows, int num_cols, int num_labels)
 {
-    cout << "Entered" << __func__ << endl;
     // cout << "Labels " << num_labels << endl;
     // Counts the number of pixels in each label in pixellabel
     // if below pixel_threshold, converts it to white (-1)
@@ -498,7 +493,6 @@ int noiseEliminate(int pixellabel[][640], int num_rows, int num_cols, int num_la
 // Returns the number of centroids found
 int findCentroids(int pixellabel[][640], int num_rows, int num_cols, int num_objects, int centroidRows[], int centroidCols[])
 {
-    cout << "Entered" << __func__ << endl;
     // Another int to count how many centroids we created
     int found_centroids = 0;
     // Iterate through every object to find their centroid
@@ -538,7 +532,6 @@ int findCentroids(int pixellabel[][640], int num_rows, int num_cols, int num_obj
 int drawLine(int pixellabel[][640], int num_rows, int num_cols, int cur_col, int cur_row, int direction)
 {
 
-    cout << "Entered" << __func__ << endl;
     // Draw left
     if (direction == LEFT) {
         for (int i=0; i<25; i++) {
@@ -578,7 +571,6 @@ int drawLine(int pixellabel[][640], int num_rows, int num_cols, int cur_col, int
 // Go through centroid array and draw crosshairs on each object
 void drawCrosshairs(int pixellabel[][640], int num_rows, int num_cols, int centroidX[], int centroidY[], int num_objects)
 {
-    cout << "Entered" << __func__ << endl;
     for (int object=0; object<num_objects; object++) {
         drawLine(pixellabel, num_rows, num_cols, centroidX[object], centroidY[object], LEFT);
         drawLine(pixellabel, num_rows, num_cols, centroidX[object], centroidY[object], RIGHT);
@@ -591,7 +583,6 @@ void drawCrosshairs(int pixellabel[][640], int num_rows, int num_cols, int centr
 
 // Find the world coordinates given the camera row and column in pixels
 void translate_to_world_coords(float col_in_pixels, float row_in_pixels, float *x_world, float *y_world) {
-    cout << "Entered" << __func__ << endl;
     // Constants to be measured
     float adjusted_origin_row = 409.0;
     float adjusted_origin_col = 368.0;
@@ -626,30 +617,30 @@ void translate_to_world_coords(float col_in_pixels, float row_in_pixels, float *
 }
 
 // Find the world coordinates given the camera r and c
-void find_wc(int c, int r){
+void find_wc(float row_in_pixels, float col_in_pixels, float *x_world, float *y_world) {
     // Constants to be measured
     float theta = -PI; // adjust as neces ary +/-
     float Or = 480/2, Oc = 640/2; //verify image size
-    float Tx = 391, Ty =326; // Find from image (click on the world origin in image)
+    float Tx = 394, Ty =423; // Find from image (click on the world origin in image)
     float B = 7.45; // calc this (ratio of pixel size to actual size of an object)
 
-    // calculating xw and yw
-    float xc = ((float)r-Or)/B; // xc is just a intermediate variable
-    float yc = ((float)c-Oc)/B; // xy is just a intermediate variable
-    xw = cos(theta)*(xc - Tx) + sin(theta)*(yc - Ty);
-    yw = sin(theta)*(Tx - xc) + cos(theta)*(yc - Ty);
+    // calculating xc and yc (the coordinate in the camera frame with unit 'cm')
+    float xc = ((float)row_in_pixels-Or)/B; // xc is just a intermediate variable
+    float yc = ((float)col_in_pixels-Oc)/B; // xy is just a intermediate variable
+    // Verified that image frame has origin in midpoint of image array
+    // Verified that scaling to cm is correct
+    // xc,yc is the coordinate in the camera frame with unit 'cm'
+
+    // cout << "Input coords row_in_pixels: " << row_in_pixels << " col_in_pixels: " << col_in_pixels << endl;
+    cout << "xc: " << xc << " yc: " << yc << endl;
+    // converting xc,yc into xw,yw unit 'cm'
+    *x_world = cos(theta)*(xc - Tx) + sin(theta)*(yc - Ty);
+    *y_world = sin(theta)*(Tx - xc) + cos(theta)*(yc - Ty);
 }
 
 
 // Helper Function to move the robot to given world coordinates.
 void move_robot(int xw, int yw)
 {
-
-}
-
-// Helper Function to move the robot to given world coordinates.
-void move_robot(int xw, int yw)
-{
-    cout << "Entered" << __func__ << endl;
     ;
 }
