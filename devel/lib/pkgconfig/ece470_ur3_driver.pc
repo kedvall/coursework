@@ -1,0 +1,8 @@
+prefix=/home/youbot/edvall2_catkin/devel
+
+Name: ece470_ur3_driver
+Description: Description of ece470_ur3_driver
+Version: 0.0.0
+Cflags: -I/home/youbot/edvall2_catkin/devel/include
+Libs: -L/home/youbot/edvall2_catkin/devel/lib 
+Requires: roscpp rospy std_msgs message_runtime

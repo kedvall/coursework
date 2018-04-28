@@ -1,0 +1,8 @@
+prefix=/home/youbot/edvall2_catkin/install
+
+Name: lab56pkg
+Description: Description of lab56pkg
+Version: 0.0.0
+Cflags: -I/home/youbot/edvall2_catkin/install/include
+Libs: -L/home/youbot/edvall2_catkin/install/lib -llab56pkglib
+Requires: cv_bridge image_transport roscpp rospy sensor_msgs std_msgs ece470_ur3_driver lab4pkg lab3pkg
