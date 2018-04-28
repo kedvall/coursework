@@ -625,6 +625,27 @@ void translate_to_world_coords(float col_in_pixels, float row_in_pixels, float *
     *y_world = sin(theta)*(origin_x_in_cm - point_x_in_camera_frame) + cos(theta)*(point_y_in_camera_frame - origin_y_in_cm);
 }
 
+// Find the world coordinates given the camera r and c
+void find_wc(int c, int r){
+    // Constants to be measured
+    float theta = -PI; // adjust as neces ary +/-
+    float Or = 480/2, Oc = 640/2; //verify image size
+    float Tx = 391, Ty =326; // Find from image (click on the world origin in image)
+    float B = 7.45; // calc this (ratio of pixel size to actual size of an object)
+
+    // calculating xw and yw
+    float xc = ((float)r-Or)/B; // xc is just a intermediate variable
+    float yc = ((float)c-Oc)/B; // xy is just a intermediate variable
+    xw = cos(theta)*(xc - Tx) + sin(theta)*(yc - Ty);
+    yw = sin(theta)*(Tx - xc) + cos(theta)*(yc - Ty);
+}
+
+
+// Helper Function to move the robot to given world coordinates.
+void move_robot(int xw, int yw)
+{
+
+}
 
 // Helper Function to move the robot to given world coordinates.
 void move_robot(int xw, int yw)
