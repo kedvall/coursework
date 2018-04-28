@@ -523,6 +523,7 @@ int findCentroids(int pixellabel[][640], int num_rows, int num_cols, int num_obj
         }
         else
             cout << "too few pixels " << endl;
+            return 0;
     }
     return found_centroids;
 }
