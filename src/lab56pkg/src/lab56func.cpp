@@ -397,26 +397,28 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 
             if (SuctionValue < 2.0)
                 cout << "Error! No block currently held" << endl;
+            else
+            {
+                rightclickdone = 0;  // starting code
+                ROS_INFO_STREAM("right click:  (" << x << ", " << y << ")");  //the point you clicked
 
-			rightclickdone = 0;  // starting code
-			ROS_INFO_STREAM("right click:  (" << x << ", " << y << ")");  //the point you clicked
+                // put your right click code here
+                row_in_pixels = (float)y;
+                col_in_pixels = (float)x;
+                cout << "right click! Row, Col in pixels: (" << row_in_pixels << ", " << col_in_pixels << ")" << endl;
+                find_wc(row_in_pixels, col_in_pixels);
 
-			// put your right click code here
-            row_in_pixels = (float)y;
-            col_in_pixels = (float)x;
-            cout << "right click! Row, Col in pixels: (" << row_in_pixels << ", " << col_in_pixels << ")" << endl;
-            find_wc(row_in_pixels, col_in_pixels);
+                cout << "Publishing: " << x_world << " " << y_world << " " << z_world << endl;
+                driver_msg.destination = lab_invk(x_world, y_world, z_world+0.1, 0);
+                move_robot();
+                driver_msg.destination = lab_invk(x_world, y_world, z_world, 0);
+                move_robot();
+                set_suction(false);
+                driver_msg.destination = lab_invk(x_world, y_world, z_world+0.1, 0);
+                move_robot();
 
-            cout << "Publishing: " << x_world << " " << y_world << " " << z_world << endl;
-            driver_msg.destination = lab_invk(x_world, y_world, z_world+0.1, 0);
-            move_robot();
-            driver_msg.destination = lab_invk(x_world, y_world, z_world, 0);
-            move_robot();
-            set_suction(false);
-            driver_msg.destination = lab_invk(x_world, y_world, z_world+0.1, 0);
-            move_robot();
-
-			rightclickdone = 1; // code finished
+                rightclickdone = 1; // code finished
+            }
 		} else {
 			ROS_INFO_STREAM("Previous click not finshed, IGNORING this Click");
 		}
