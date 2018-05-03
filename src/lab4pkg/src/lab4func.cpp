@@ -29,7 +29,7 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
 
 	xgrip = xWgrip + 0.150;
 	ygrip = yWgrip - 0.150;
-	zgrip = zWgrip - 0.014;x
+	zgrip = zWgrip - 0.014;
 
     float yaw_WgripRad = yaw_WgripDegree*(PI/180);
 
@@ -66,8 +66,8 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
     // Equation 4:
     // Input: theta_1, xcen, ycen, zcen
     // Output: Y3end, X3end, Z3end
-    y3end =  ycen - (d2+d3+d4)*cos(theta1) - .083*sin(theta1);
-    x3end =  xcen - (d2+d3+d4)*cos(theta1) - .083*sin(theta1);
+    y3end =  ycen - (d2+d3+d4)*cos(theta1) - d5*sin(theta1);
+    x3end =  xcen - d5*cos(theta1) + (d2+d3+d4)*sin(theta1);
     z3end = zcen + d6;
     // ---------------------------------------------------------
 
@@ -76,11 +76,18 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
     // Input: X3end, Y3end, Z3end
     // Output: theta_2, theta_3, theta_4
     float C = sqrt(x3end*x3end + y3end*y3end + (z3end-d1)*(z3end-d1));
-    float theta_2_1 = acos((.244*.244 + C*C - .213*.213)/(2*.244*C));
-    float theta_2_2 = atan2(z3end-.152, sqrt(x3end*x3end + y3end*y3end));
-    theta2 = -theta_2_1 -theta_2_2;
-    theta3 = PI - asin((C*sin(theta_2_1))/.213);
-    theta4 = -PI/2.0 - theta3 - theta2;
+    // float theta_2_1 = asin((a2*a2 + C*C - .213*.213)/(2*.244*C));
+    // float theta_2_2 = atan2(z3end-.152, sqrt(x3end*x3end + y3end*y3end));
+    // theta2 = -theta_2_1 -theta_2_2;
+    // theta3 = PI - asin((C*sin(theta_2_1))/.213);
+    // theta4 = -PI/2.0 - theta3 - theta2;
+    theta_a = asin((z3end-d1)/C);
+    theta_b = acos((a2*a2 + C*C - a3*a3)/2.0*a2*C);
+    theta_c = acos((a2*a2 + a3*a3 - C*C)/2.0*a2*a3);
+    theta2 = -theta_a - theta_b;
+    theta3 = PI - theta_c;
+    theta4 = theta_a + theta_b + theta_c - 3.0*PI/2.0;
+
     // ---------------------------------------------------------
 
 	// View values
@@ -91,6 +98,8 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
 	cout<<"theta4: "<< theta4<<endl;
 	cout<<"theta5: "<< theta5<<endl;
 	cout<<"theta6: "<< theta6<<endl;
+
+    cout<<"huskies are awesome!"<<endl;
 
 	// check that your values are good BEFORE sending commands to UR3
 	//lab_fk calculates the forward kinematics and convert it to std::vector<double>
