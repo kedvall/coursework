@@ -33,7 +33,7 @@ class ImageConverter
 		// initialize cv bridge sub and pub
 		image_transport::ImageTransport it_;
 		image_transport::Subscriber image_sub_;
-		image_transport::Publisher image_pub_; 
+		image_transport::Publisher image_pub_;
 		ros::Publisher pub_command;
 		ros::Subscriber sub_position;
 		ece470_ur3_driver::command driver_msg;
@@ -41,13 +41,13 @@ class ImageConverter
 		ros::ServiceClient srv_SetIO;
 		ur_msgs::SetIO srv;
 
-	public: 
+	public:
 		//constructor(don't modify)
 		ImageConverter();
-	  
+
 		//destructor(don't modify)
 		~ImageConverter();
-	  
+
 		//Subscriber callback function, will be called when there is a new image read by camera
 		void imageCb(const sensor_msgs::ImageConstPtr& msg);
 
@@ -55,12 +55,14 @@ class ImageConverter
 		void suction_callback(const ur_msgs::IOStates::ConstPtr& msg);
 		//class function for onMouse click
 	  	void onClick(int event,int x, int y, int flags, void* userdata);
+        void move_robot();
+        int set_suction(bool suction_state);
 
 	private:
-	
+
 		//lab5's function, thresholding the image, input a grayscale image and returns a threshholded image
 		Mat thresholdImage(Mat gray_img);
-	
+
 		//lab5's function, associating image, input a black and white(binary) image and returns an associated image
 		Mat associateObjects(Mat bw_img);
 };

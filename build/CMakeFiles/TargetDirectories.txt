@@ -15,7 +15,7 @@
 /home/youbot/edvall2_catkin/build/drivers/cv_camera/CMakeFiles/bond_generate_messages_lisp.dir
 /home/youbot/edvall2_catkin/build/drivers/cv_camera/CMakeFiles/bond_generate_messages_py.dir
 /home/youbot/edvall2_catkin/build/CMakeFiles/clean_test_results.dir
-/home/youbot/edvall2_catkin/build/drivers/cv_camera/CMakeFiles/clean_test_results_cv_camera.dir
+/home/youbot/edvall2_catkin/build/CMakeFiles/clean_test_results_Project.dir
 /home/youbot/edvall2_catkin/build/drivers/ur_modern_driver/CMakeFiles/control_msgs_generate_messages_cpp.dir
 /home/youbot/edvall2_catkin/build/drivers/ur_modern_driver/CMakeFiles/control_msgs_generate_messages_lisp.dir
 /home/youbot/edvall2_catkin/build/drivers/ur_modern_driver/CMakeFiles/control_msgs_generate_messages_py.dir
