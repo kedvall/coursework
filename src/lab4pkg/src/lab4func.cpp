@@ -29,7 +29,7 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
 
 	xgrip = xWgrip + 0.150;
 	ygrip = yWgrip - 0.150;
-	zgrip = zWgrip - 0.014;
+	zgrip = zWgrip - 0.014;x
 
     float yaw_WgripRad = yaw_WgripDegree*(PI/180);
 
@@ -38,49 +38,49 @@ std::vector<double> lab_invk(float xWgrip, float yWgrip, float zWgrip, float yaw
     // Input: theta_y (yaw desired)
     //        Xgrip, Ygrip, Zgrip (desired position of gripper)
     // Output: xcen, ycen, zcen
-    xcen = xgrip + a6*sin(yaw_WgripRad - PI/2);
-    ycen = ygrip - a6*cos(yaw_WgripRad - PI/2);
+    xcen = xgrip - a6*cos(yaw_WgripRad);
+    ycen = ygrip - a6*sin(yaw_WgripRad);
     zcen = zgrip;
     // ---------------------------------------------------------
 
-    theta5 = - PI/2 ; // By definition
+    theta5 = - PI/2.0 ; // By definition
 
     // ---------------------------------------------------------
     // Equation 2:
     float A = sqrt(xcen*xcen + ycen*ycen);
 
-    float theta_A = atan2(xcen, ycen);
-    float theta_B = asin(.110/A);
+    float theta_A = atan2(ycen, xcen);
+    float theta_B = asin((d2+d3+d4)/A);
 
-    theta1 = PI/2 - theta_A - theta_B;
+    theta1 = theta_A - theta_B;
 
     // cout << "Theta A: " << theta_A << " theta B: " << theta_B << endl;
     // ---------------------------------------------------------
 
     // ---------------------------------------------------------
     // Equation 3:
-    theta6 = PI/2 + theta1 - yaw_WgripRad;
+    theta6 = PI/2.0 + theta1 - yaw_WgripRad;
     // ---------------------------------------------------------
 
     // ---------------------------------------------------------
     // Equation 4:
     // Input: theta_1, xcen, ycen, zcen
     // Output: Y3end, X3end, Z3end
-    y3end =  ycen - .110*cos(theta1) - .083*sin(theta1);
-    x3end =  xcen - .110*cos(theta1) - .083*sin(theta1);
-    z3end = zcen + .142;
+    y3end =  ycen - (d2+d3+d4)*cos(theta1) - .083*sin(theta1);
+    x3end =  xcen - (d2+d3+d4)*cos(theta1) - .083*sin(theta1);
+    z3end = zcen + d6;
     // ---------------------------------------------------------
 
     // ---------------------------------------------------------
     // Equation 5:
     // Input: X3end, Y3end, Z3end
     // Output: theta_2, theta_3, theta_4
-    float C = sqrt(x3end*x3end + y3end*y3end + (z3end-.152)*(z3end-.152));
+    float C = sqrt(x3end*x3end + y3end*y3end + (z3end-d1)*(z3end-d1));
     float theta_2_1 = acos((.244*.244 + C*C - .213*.213)/(2*.244*C));
     float theta_2_2 = atan2(z3end-.152, sqrt(x3end*x3end + y3end*y3end));
     theta2 = -theta_2_1 -theta_2_2;
     theta3 = PI - asin((C*sin(theta_2_1))/.213);
-    theta4 = -PI/2 - theta3 - theta2;
+    theta4 = -PI/2.0 - theta3 - theta2;
     // ---------------------------------------------------------
 
 	// View values
