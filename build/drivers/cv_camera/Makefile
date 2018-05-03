@@ -248,6 +248,20 @@ bond_generate_messages_py/fast:
 .PHONY : bond_generate_messages_py/fast
 
 # Convenience name for target.
+drivers/cv_camera/CMakeFiles/clean_test_results_cv_camera.dir/rule:
+	cd /home/youbot/edvall2_catkin/build && $(MAKE) -f CMakeFiles/Makefile2 drivers/cv_camera/CMakeFiles/clean_test_results_cv_camera.dir/rule
+.PHONY : drivers/cv_camera/CMakeFiles/clean_test_results_cv_camera.dir/rule
+
+# Convenience name for target.
+clean_test_results_cv_camera: drivers/cv_camera/CMakeFiles/clean_test_results_cv_camera.dir/rule
+.PHONY : clean_test_results_cv_camera
+
+# fast build rule for target.
+clean_test_results_cv_camera/fast:
+	cd /home/youbot/edvall2_catkin/build && $(MAKE) -f drivers/cv_camera/CMakeFiles/clean_test_results_cv_camera.dir/build.make drivers/cv_camera/CMakeFiles/clean_test_results_cv_camera.dir/build
+.PHONY : clean_test_results_cv_camera/fast
+
+# Convenience name for target.
 drivers/cv_camera/CMakeFiles/cv_camera.dir/rule:
 	cd /home/youbot/edvall2_catkin/build && $(MAKE) -f CMakeFiles/Makefile2 drivers/cv_camera/CMakeFiles/cv_camera.dir/rule
 .PHONY : drivers/cv_camera/CMakeFiles/cv_camera.dir/rule
@@ -810,6 +824,7 @@ help:
 	@echo "... bond_generate_messages_cpp"
 	@echo "... bond_generate_messages_lisp"
 	@echo "... bond_generate_messages_py"
+	@echo "... clean_test_results_cv_camera"
 	@echo "... cv_camera"
 	@echo "... cv_camera_node"
 	@echo "... cv_camera_nodelet"

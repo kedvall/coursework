@@ -163,19 +163,6 @@ clean_test_results/fast:
 .PHONY : clean_test_results/fast
 
 #=============================================================================
-# Target rules for targets named clean_test_results_Project
-
-# Build rule for target.
-clean_test_results_Project: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 clean_test_results_Project
-.PHONY : clean_test_results_Project
-
-# fast build rule for target.
-clean_test_results_Project/fast:
-	$(MAKE) -f CMakeFiles/clean_test_results_Project.dir/build.make CMakeFiles/clean_test_results_Project.dir/build
-.PHONY : clean_test_results_Project/fast
-
-#=============================================================================
 # Target rules for targets named download_extra_data
 
 # Build rule for target.
@@ -356,6 +343,19 @@ bond_generate_messages_py: cmake_check_build_system
 bond_generate_messages_py/fast:
 	$(MAKE) -f drivers/cv_camera/CMakeFiles/bond_generate_messages_py.dir/build.make drivers/cv_camera/CMakeFiles/bond_generate_messages_py.dir/build
 .PHONY : bond_generate_messages_py/fast
+
+#=============================================================================
+# Target rules for targets named clean_test_results_cv_camera
+
+# Build rule for target.
+clean_test_results_cv_camera: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 clean_test_results_cv_camera
+.PHONY : clean_test_results_cv_camera
+
+# fast build rule for target.
+clean_test_results_cv_camera/fast:
+	$(MAKE) -f drivers/cv_camera/CMakeFiles/clean_test_results_cv_camera.dir/build.make drivers/cv_camera/CMakeFiles/clean_test_results_cv_camera.dir/build
+.PHONY : clean_test_results_cv_camera/fast
 
 #=============================================================================
 # Target rules for targets named cv_camera
@@ -1300,7 +1300,6 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... clean_test_results"
-	@echo "... clean_test_results_Project"
 	@echo "... download_extra_data"
 	@echo "... doxygen"
 	@echo "... edit_cache"
@@ -1322,6 +1321,7 @@ help:
 	@echo "... bond_generate_messages_cpp"
 	@echo "... bond_generate_messages_lisp"
 	@echo "... bond_generate_messages_py"
+	@echo "... clean_test_results_cv_camera"
 	@echo "... cv_camera"
 	@echo "... cv_camera_node"
 	@echo "... cv_camera_nodelet"
