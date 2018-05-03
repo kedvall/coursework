@@ -10,16 +10,12 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "lab56node");
   ros::NodeHandle nh_command;
 
-  
-
-
-
   //initialize video window names
   namedWindow("Image window");
   namedWindow("associate objects");
   namedWindow("gray_scale");
   namedWindow("black and white");
-  
+
   //declare the class & and assign its address to global pointer
   ImageConverter ic;
   ic_ptr= &ic;
@@ -33,6 +29,6 @@ int main(int argc, char** argv)
  // while(ros::ok()){
   ros::spin();
  // }
-  
+
   return 0;
 }

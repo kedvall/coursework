@@ -1,5 +1,7 @@
 #include "lab56pkg/lab56.h"
 
+#define DEBUG false
+
 extern ImageConverter* ic_ptr; //global pointer from the lab56.cpp
 
 // Magic numbers
@@ -18,6 +20,14 @@ float SuctionValue = 0.0;
 bool leftclickdone = 1;
 bool rightclickdone = 1;
 
+// Initialize arrays for centroid-finding
+int centroidRows[5000] = {0};
+int centroidCols[5000] = {0};
+int found_centroids = 0;
+float x_world = 0;
+float y_world = 0;
+float z_world = 0;
+
 /*****************************************************
 * Functions in class:
 * **************************************************/
@@ -27,7 +37,8 @@ int noiseEliminate(int pixellabel[][640], int num_rows, int num_cols,int num_lab
 int findCentroids(int pixellabel[][640], int num_rows, int num_cols, int num_objects, int centroidRows[], int centroidCols[]);
 void drawCrosshairs(int pixellabel[][640], int num_rows, int num_cols, int centroidX[], int centroidY[], int num_objects);
 void translate_to_world_coords(float row_in_pixels, float col_in_pixels, float *x_world, float *y_world);
-void find_wc(float row_in_pixels, float col_in_pixels, float *x_world, float *y_world);
+void find_wc(float row_in_pixels, float col_in_pixels);
+int find_nearest_centroid(float row_in_pixels, float col_in_pixels);
 
 //constructor(don't modify)
 ImageConverter::ImageConverter():it_(nh_)
@@ -45,7 +56,7 @@ ImageConverter::ImageConverter():it_(nh_)
 	srv_SetIO = nh_.serviceClient<ur_msgs::SetIO>("ur_driver/set_io");
 
 
-    driver_msg.destination=lab_invk(0.05,.3,0.2,0);
+    driver_msg.destination=lab_invk(0,0,0.2,90);
 
 	//publish the point to the robot
     ros::Rate loop_rate(SPIN_RATE); // Initialize the rate to publish to ur3/command
@@ -118,7 +129,6 @@ void ImageConverter::imageCb(const sensor_msgs::ImageConstPtr& msg)
 	//thresholdType = 0, BINARY
 	//blocksize
 	//C constant subtracted from tz.
-
 
 // FUNCTION you will be completing
     Mat associate_image = associateObjects(bw_image); // find associated objects
@@ -258,18 +268,8 @@ Mat ImageConverter::associateObjects(Mat bw_img)
     // Eliminate noise, and find the number of final objects
     int num_objects = noiseEliminate(pixellabel, height, width, labelnum);
 
-    // Initialize arrays for centroid-finding
-    int centroidRows[num_objects];
-    int centroidCols[num_objects];
-
     // Find the centroids.
-    int found_centroids = findCentroids(pixellabel, height, width, num_objects, centroidRows, centroidCols);
-
-    // print out the centroid rows
-    // for (int i=0; i<found_centroids; i++)
-    // {
-    //     cout << "row: " << centroidRows[i] << " col: " << centroidCols[i] << endl;
-    // }
+    found_centroids = findCentroids(pixellabel, height, width, num_objects, centroidRows, centroidCols);
 
     // Draw crosshairs
     drawCrosshairs(pixellabel, height, width, centroidCols, centroidRows, found_centroids);
@@ -366,13 +366,14 @@ Mat ImageConverter::associateObjects(Mat bw_img)
  //lab4 and lab3 functions can be used since it is included in the "lab4.h"
 void onMouse(int event, int x, int y, int flags, void* userdata)
 {
+    // cout << "Entered " << __func__ << endl;
+
 		ic_ptr->onClick(event,x,y,flags,userdata);
 }
+
 void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 {
-    cout << "Entered " << __func__ << endl;
-    float x_world;
-    float y_world;
+    // cout << "Entered " << __func__ << endl;
     float row_in_pixels, col_in_pixels;
 	// For use with Lab 6
 	// If the robot is holding a block, place it at the designated row and column.
@@ -387,9 +388,45 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
             cout << "left click! Row, Col in pixels: (" << row_in_pixels << ", " << col_in_pixels << ")" << endl;
 
 			// put your left click code here
-            find_wc(row_in_pixels, col_in_pixels, &x_world, &y_world);
-            cout << "Coord x_world: " << x_world << endl;
-            cout << "Coord y_world: " << y_world << endl;
+            // int nearest_centroid = find_nearest_centroid(row_in_pixels, col_in_pixels);
+            // // row_in_pixels = centroidRows[nearest_centroid];
+            // // col_in_pixels = centroidCols[nearest_centroid];
+            // cout << "Using centroid " << nearest_centroid << " with coords row: " << row_in_pixels << " col: " << col_in_pixels << endl;
+
+            find_wc(row_in_pixels, col_in_pixels);
+
+            //LAB4's lab_invk() this gives the joint angles for the chosen point
+            //kevin
+            cout << "Publishing: " << x_world << " " << y_world << " " << z_world << endl;
+            driver_msg.destination = lab_invk(x_world, y_world, z_world, 90);
+
+        	//publish the point to the robot
+            ros::Rate loop_rate(SPIN_RATE); // Initialize the rate to publish to ur3/command
+        	int spincount = 0;
+        	driver_msg.duration = 3.0;
+        	pub_command.publish(driver_msg);  // publish command, but note that is possible that
+        										  // the subscriber will not receive this message.
+        	spincount = 0;
+        	while (isReady) { // Waiting for isReady to be false meaning that the driver has the new command
+        		ros::spinOnce();  // Allow other ROS functionallity to run
+        		loop_rate.sleep(); // Sleep and wake up at 1/20 second (1/SPIN_RATE) interval
+        		if (spincount > SPIN_RATE) {  // if isReady does not get set within 1 second re-publish
+        			pub_command.publish(driver_msg);
+        			// ROS_INFO_STREAM("Just Published again driver_msg");
+        			spincount = 0;
+        		}
+        		spincount++;  // keep track of loop count
+        	}
+        	ROS_INFO_STREAM("waiting for rdy");  // Now wait for robot arm to reach the commanded waypoint.
+
+        	while(!isReady)
+        	{
+        		ros::spinOnce();
+        		loop_rate.sleep();
+        	}
+        	ROS_INFO_STREAM("Ready for new point");
+
+
 
 			leftclickdone = 1; // code finished
 		} else {
@@ -403,6 +440,10 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 			ROS_INFO_STREAM("right click:  (" << x << ", " << y << ")");  //the point you clicked
 
 			// put your right click code here
+            row_in_pixels = y;
+            col_in_pixels = x;
+            cout << "right click! Row, Col in pixels: (" << row_in_pixels << ", " << col_in_pixels << ")" << endl;
+
 
 
 
@@ -418,7 +459,6 @@ void ImageConverter::onClick(int event,int x, int y, int flags, void* userdata)
 // If there's no valid neighbor, return -1
 int getLeftPixel(int pixellabel[][640], int row, int col)
 {
-    cout << "Entered " << __func__ << endl;
     // Check if we are operating on the top row or the leftmost column
     if (col != 0)
         return pixellabel[row][col-1];
@@ -431,7 +471,6 @@ int getLeftPixel(int pixellabel[][640], int row, int col)
 // If there's no valid neighbor, return -1
 int getAbovePixel(int pixellabel[][640], int row, int col)
 {
-    cout << "Entered " << __func__ << endl;
     // Check if we are operating on the top row or the leftmost column
     if (row != 0)
         return pixellabel[row-1][col];
@@ -446,7 +485,7 @@ int getAbovePixel(int pixellabel[][640], int row, int col)
 // returns the final number of objects in the image, and modifies pixellabel in place.
 int noiseEliminate(int pixellabel[][640], int num_rows, int num_cols, int num_labels)
 {
-    cout << "Entered " << __func__ << endl;
+    // cout << "Entered " << __func__ << endl;
     // cout << "Labels " << num_labels << endl;
     // Counts the number of pixels in each label in pixellabel
     // if below pixel_threshold, converts it to white (-1)
@@ -497,7 +536,7 @@ int noiseEliminate(int pixellabel[][640], int num_rows, int num_cols, int num_la
 // Returns the number of centroids found
 int findCentroids(int pixellabel[][640], int num_rows, int num_cols, int num_objects, int centroidRows[], int centroidCols[])
 {
-    cout << "Entered " << __func__ << endl;
+    // cout << "Entered " << __func__ << endl;
     // Another int to count how many centroids we created
     int found_centroids = 0;
     // Iterate through every object to find their centroid
@@ -536,39 +575,51 @@ int findCentroids(int pixellabel[][640], int num_rows, int num_cols, int num_obj
 
 int drawLine(int pixellabel[][640], int num_rows, int num_cols, int cur_col, int cur_row, int direction)
 {
+    if (DEBUG) cout << "Entered " << __func__ << endl;
 
-    cout << "Entered " << __func__ << endl;
     // Draw left
     if (direction == LEFT) {
+        if (DEBUG) cout << "In left" << endl;
         for (int i=0; i<25; i++) {
+            if (DEBUG) cout << "Current col: " << cur_col << endl;
+            if (DEBUG) cout << "Current row: " << cur_row << endl;
             if (cur_col<0)
                 break;
-            cur_col--;
             pixellabel[cur_row][cur_col] = CROSSHAIR_PIXEL;
+            cur_col--;
         }
     // Draw right
     } else if (direction == RIGHT) {
+        if (DEBUG) cout << "In right" << endl;
         for (int i=0; i<25; i++) {
+            if (DEBUG) cout << "Current col: " << cur_col << endl;
+            if (DEBUG) cout << "Current row: " << cur_row << endl;
             if (cur_col>num_cols)
                 break;
-            cur_col++;
             pixellabel[cur_row][cur_col] = CROSSHAIR_PIXEL;
+            cur_col++;
         }
     // Draw up
     } else if (direction == UP) {
+        if (DEBUG) cout << "In up" << endl;
         for (int i=0; i<25; i++) {
+            if (DEBUG) cout << "Current col: " << cur_col << endl;
+            if (DEBUG) cout << "Current row: " << cur_row << endl;
             if (cur_row<0)
                 break;
-            cur_row--;
             pixellabel[cur_row][cur_col] = CROSSHAIR_PIXEL;
+            cur_row--;
         }
     // Draw down
     } else if (direction == DOWN) {
+        if (DEBUG) cout << "In down" << endl;
         for (int i=0; i<25; i++) {
+            if (DEBUG) cout << "Current col: " << cur_col << endl;
+            if (DEBUG) cout << "Current row: " << cur_row << endl;
             if (cur_row>num_rows)
                 break;
-            cur_row++;
             pixellabel[cur_row][cur_col] = CROSSHAIR_PIXEL;
+            cur_row++;
         }
     }
 }
@@ -577,7 +628,7 @@ int drawLine(int pixellabel[][640], int num_rows, int num_cols, int cur_col, int
 // Go through centroid array and draw crosshairs on each object
 void drawCrosshairs(int pixellabel[][640], int num_rows, int num_cols, int centroidX[], int centroidY[], int num_objects)
 {
-    cout << "Entered " << __func__ << endl;
+    if (DEBUG) cout << "Entered " << __func__ << endl;
     for (int object=0; object<num_objects; object++) {
         drawLine(pixellabel, num_rows, num_cols, centroidX[object], centroidY[object], LEFT);
         drawLine(pixellabel, num_rows, num_cols, centroidX[object], centroidY[object], RIGHT);
@@ -587,50 +638,13 @@ void drawCrosshairs(int pixellabel[][640], int num_rows, int num_cols, int centr
 }
 
 
-
-// Find the world coordinates given the camera row and column in pixels
-void translate_to_world_coords(float col_in_pixels, float row_in_pixels, float *x_world, float *y_world) {
-    cout << "Entered " << __func__ << endl;
-    // Constants to be measured
-    float adjusted_origin_row = 409.0;
-    float adjusted_origin_col = 368.0;
-
-    float theta = -PI; // adjust as necessary +/-
-    float center_row_camera_frame = 480/2; // O_r
-    float center_col_camera_frame = 640/2; // O_c
-    float pixel_to_cm_scaling_factor = 7.45; // Beta (ratio of pixel size to actual size of an object)
-
-    float row_adjustment = center_row_camera_frame - adjusted_origin_row;
-    float col_adjustment = center_col_camera_frame - adjusted_origin_col;
-
-    cout << "Camera row center: " << center_row_camera_frame << endl;
-    cout << "Camera col center: " << center_col_camera_frame << endl;
-    cout << "row_adjustment: " << row_adjustment << endl;
-    cout << "col_adjustment: " << col_adjustment << endl;
-
-    float point_row_in_pixels_adjusted = row_in_pixels + row_adjustment;
-    float point_col_in_pixels_adjusted = col_in_pixels + col_adjustment;
-
-    cout << "adjusted point row: " << point_row_in_pixels_adjusted << endl;
-    cout << "adjusted point col: " << point_col_in_pixels_adjusted << endl;
-
-    float origin_x_in_cm = 424/pixel_to_cm_scaling_factor; // T_x
-    float origin_y_in_cm = 396/pixel_to_cm_scaling_factor; // T_y
-
-    // calculating xw and yw
-    float point_x_in_camera_frame = (col_in_pixels-center_col_camera_frame)/pixel_to_cm_scaling_factor; // Units of cm
-    float point_y_in_camera_frame = (row_in_pixels-center_row_camera_frame)/pixel_to_cm_scaling_factor; // Units of cm
-    *x_world = cos(theta)*(point_x_in_camera_frame - origin_x_in_cm) + sin(theta)*(point_y_in_camera_frame - origin_y_in_cm);
-    *y_world = sin(theta)*(origin_x_in_cm - point_x_in_camera_frame) + cos(theta)*(point_y_in_camera_frame - origin_y_in_cm);
-}
-
 // Find the world coordinates given the camera r and c
-void find_wc(float row_in_pixels, float col_in_pixels, float *x_world, float *y_world) {
-    cout << "Entered " << __func__ << endl;
+void find_wc(float row_in_pixels, float col_in_pixels) {
+    // cout << "Entered " << __func__ << endl;
     // Constants to be measured
-    float theta = -PI; // adjust as neces ary +/-
-    float Or = 480/2, Oc = 640/2; //verify image size
-    float Tx = 394, Ty =423; // Find from image (click on the world origin in image)
+    float theta = PI - 0.0778226; // adjust as neces ary +/-
+    float Or = 480/2, Oc = 640/2; // half the size of the image
+    float Tx = 20.6711, Ty =13.9597; // Find from image (click on the world origin in image)
     float B = 7.45; // calc this (ratio of pixel size to actual size of an object)
 
     // calculating xc and yc (the coordinate in the camera frame with unit 'cm')
@@ -641,10 +655,33 @@ void find_wc(float row_in_pixels, float col_in_pixels, float *x_world, float *y_
     // xc,yc is the coordinate in the camera frame with unit 'cm'
 
     // cout << "Input coords row_in_pixels: " << row_in_pixels << " col_in_pixels: " << col_in_pixels << endl;
-    cout << "xc: " << xc << " yc: " << yc << endl;
+    // cout << "xc: " << xc << " yc: " << yc << endl;
     // converting xc,yc into xw,yw unit 'cm'
-    *x_world = cos(theta)*(xc - Tx) + sin(theta)*(yc - Ty);
-    *y_world = sin(theta)*(Tx - xc) + cos(theta)*(yc - Ty);
+    x_world = cos(theta)*(xc - Tx) + sin(theta)*(yc - Ty);
+    x_world = x_world/100;
+    y_world = sin(theta)*(Tx - xc) + cos(theta)*(yc - Ty);
+    y_world = y_world/100;
+
+    z_world = 3.0/100; // This is a constant and equal to the height of the cube in 'cm'
+    // Print for verification
+    cout << "x_world: " << x_world << " y_world: " << y_world << " z_world: " << z_world << endl;
+}
+
+
+int find_nearest_centroid(float row_in_pixels, float col_in_pixels) {
+    float min_distance = 640.0+480.0; // Shouldn't be able to get higher than this (or even get to this)
+    float new_distance = 640.0+480.0;
+    int centroid = -1;
+
+    for (int i=0; i<found_centroids; i++) {
+        new_distance = sqrt( pow(row_in_pixels-centroidRows[i],2) + pow(col_in_pixels-centroidCols[i],2) );
+        if (new_distance < min_distance) {
+            min_distance = new_distance;
+            centroid = i;
+        }
+    }
+
+    return centroid;
 }
 
 
