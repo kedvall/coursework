@@ -13,7 +13,7 @@ PROMPT='
 $ '
 
 # Must use Powerline font, for \uE0A0 to render.
-ZSH_THEME_GIT_PROMPT_PREFIX=" on %{$FG[046]%}\uE0A0"
+ZSH_THEME_GIT_PROMPT_PREFIX=" on %{$FG[046]%}\uE0A0 "
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$FG[196]%}\u2718 "
 ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$FG[196]%}? "
