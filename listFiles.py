@@ -2,23 +2,23 @@ import os
 import pathlib
 from pprint import pprint
 
-userHome = pathlib.Path.home()
-targetFolder = "dev/cs460/final_project/testFolder"
-startPath = os.path.join(userHome, targetFolder)
-print("Running folder scan on " + startPath)
+user_home = pathlib.Path.home()
+target_folder = "dev/cs460/finalProject/testFolder"
+start_path = os.path.join(user_home, target_folder)
+print("Running folder scan on " + start_path)
 
-dirList = []
-fileList = []
+dir_list = []
+file_list = []
 
-for root, dirs, files in os.walk(startPath):
+for root, dirs, files in os.walk(start_path):
     for name in files:
         # print(os.path.join(root, name))
-        fileList.append(os.path.join(root, name))
+        file_list.append(os.path.join(root, name))
     for name in dirs:
         # print(os.path.join(root, name))
-        dirList.append(os.path.join(root, name))
+        dir_list.append(os.path.join(root, name))
 
 print("\nDirectories:")
-print(dirList)
+print(dir_list)
 print("\nFolders:")
-pprint(fileList)
+pprint(file_list)
