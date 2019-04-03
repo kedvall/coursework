@@ -1,16 +1,24 @@
-from os import walk
-from pathlib import Path
+import os
+import pathlib
+from pprint import pprint
 
-fileList = []
+userHome = pathlib.Path.home()
+targetFolder = "dev/cs460/final_project/testFolder"
+startPath = os.path.join(userHome, targetFolder)
+print("Running folder scan on " + startPath)
+
 dirList = []
+fileList = []
 
-home = str(Path.home())
+for root, dirs, files in os.walk(startPath):
+    for name in files:
+        # print(os.path.join(root, name))
+        fileList.append(os.path.join(root, name))
+    for name in dirs:
+        # print(os.path.join(root, name))
+        dirList.append(os.path.join(root, name))
 
-for (dirpath, dirnames, filenames) in walk(home):
-    fileList.extend(filenames)
-    dirList.extend(dirnames)
-    break
-
-print(fileList)
-print("\n\n")
+print("\nDirectories:")
 print(dirList)
+print("\nFolders:")
+pprint(fileList)
