@@ -20,5 +20,5 @@ for root, dirs, files in os.walk(start_path):
 
 print("\nDirectories:")
 print(dir_list)
-print("\nFolders:")
+print("\nFiles:")
 pprint(file_list)
