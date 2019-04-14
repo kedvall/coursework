@@ -13,7 +13,8 @@ file_list = []
 for root, dirs, files in os.walk(start_path):
     for name in files:
         # print(os.path.join(root, name))
-        file_list.append(os.path.join(root, name))
+        if(name.lower().endswith(('.txt', '.png', '.jpg', '.docx'))):
+            file_list.append(os.path.join(root, name))
     for name in dirs:
         # print(os.path.join(root, name))
         dir_list.append(os.path.join(root, name))
