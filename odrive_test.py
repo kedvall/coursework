@@ -2,19 +2,6 @@ import odrive
 import time
 import sys
 import math
-from collections import OrderedDict 
-
-path = OrderedDict() 
-path[330] = 0
-path[335] = 100
-path[340] = 200
-path[200] = 250
-path[100] = 275
-path[000] = 330
-path[-50] = 200
-path[-100] = 100
-path[-75] = 0
-
 
 hip_level = -100 #90 deg = 3900
 leg_level = 2100
@@ -54,87 +41,71 @@ xpos = 0
 ypos = -200
 
 
-for x_coord, y_coord in path.items():
-	print("X: ",x_coord,", Y: ",y_coord)
-
-
-
 while (True):
-	# xpos_str = input("\n\nEnter X: ")
+	xpos_str = input("\n\nEnter X: ")
 	
-	# if xpos_str == "fast":
-	# 	fast = True
-	# 	print("Fast mode enabled!\n")
-	# 	continue
-	# elif xpos_str == "slow":
-	# 	fast = False
-	# 	print("Fast mode disabled\n")
-	# 	continue
-	# elif xpos_str == "safe":
-	# 	safe_mode = True
-	# 	print("safe mode enabled!\n")
-	# 	continue
-	# elif xpos_str == "unsafe":
-	# 	safe_mode = False
-	# 	print("safe mode disabled\n")
-	# 	continue
-	# else:
-	# 	xpos = float(xpos_str)
+	if xpos_str == "fast":
+		fast = True
+		print("Fast mode enabled!\n")
+		continue
+	elif xpos_str == "slow":
+		fast = False
+		print("Fast mode disabled\n")
+		continue
+	elif xpos_str == "safe":
+		safe_mode = True
+		print("safe mode enabled!\n")
+		continue
+	elif xpos_str == "unsafe":
+		safe_mode = False
+		print("safe mode disabled\n")
+		continue
+	else:
+		xpos = float(xpos_str)
 		
-	# ypos = float(input("Enter Y: "))
-	safe_mode = False
-	fast = True
+	ypos = float(input("Enter Y: "))
 
-	for x_coord, y_coord in path.items():
-		print("X: ",x_coord,", Y: ",y_coord)
-		xpos = x_coord
-		ypos = y_coord
+	print("Using X: " + str(xpos) + ", Y: " + str(ypos))
+	try:
+		q2 = -math.acos((xpos*xpos + ypos*ypos - a1*a1 - a2*a2)/(2*a1*a2))
+		q1 = math.atan2(ypos, xpos) + math.atan2(a2*math.sin(q2), a1 + a2*math.cos(q2)) - q2
+	except ValueError:
+		print("Error")
+		continue
+	print("Generated q2: " + str(q2) + ", q1: " + str(q1))
 
-		# print("Using X: " + str(xpos) + ", Y: " + str(ypos))
-		try:
-			q2 = -math.acos((xpos*xpos + ypos*ypos - a1*a1 - a2*a2)/(2*a1*a2))
-			q1 = math.atan2(ypos, xpos) + math.atan2(a2*math.sin(q2), a1 + a2*math.cos(q2)) - q2
-		except ValueError:
-			print("Error")
+	knee_setpoint = q2*rad_to_cpr*knee_ratio + zero_pos_knee
+	hip_setpoint = -q1*rad_to_cpr*hip_ratio + zero_pos_hip
+
+	print("Knee setpoint: " + str(knee_setpoint))
+	print("Hip setpoint: " + str(hip_setpoint))
+
+	if knee_setpoint > knee_upper:
+		print("Setpoint out of range (knee)")
+		continue
+	elif knee_setpoint < knee_lower:
+		print("Setpoint out of range (knee)")
+		continue
+	elif hip_setpoint > hip_upper:
+		print("Setpoint out of range (hip)")
+		continue
+	elif hip_setpoint < hip_lower:
+		print("Setpoint out of range (hip)")
+		continue
+
+	if safe_mode:
+		safe_input = input("Continue? Y / N: ")
+
+		if safe_input.lower() != "y":
+			print("Resetting\n")
 			continue
-		print("Generated q2: " + str(q2) + ", q1: " + str(q1))
 
-		knee_setpoint = q2*rad_to_cpr*knee_ratio + zero_pos_knee
-		hip_setpoint = -q1*rad_to_cpr*hip_ratio + zero_pos_hip
-
-		print("Knee setpoint: " + str(knee_setpoint))
-		print("Hip setpoint: " + str(hip_setpoint))
-
-		if knee_setpoint > knee_upper:
-			print("Setpoint out of range (knee)")
-			continue
-		elif knee_setpoint < knee_lower:
-			print("Setpoint out of range (knee)")
-			continue
-		elif hip_setpoint > hip_upper:
-			print("Setpoint out of range (hip)")
-			continue
-		elif hip_setpoint < hip_lower:
-			print("Setpoint out of range (hip)")
-			continue
-
-		if safe_mode:
-			safe_input = input("Continue? Y / N: ")
-
-			if safe_input.lower() != "y":
-				print("Resetting\n")
-				continue
-
-		if fast:
-			knee.pos_setpoint = int(knee_setpoint)
-			hip.pos_setpoint = int(hip_setpoint)
-		else:
-			knee.move_to_pos(int(knee_setpoint))
-			hip.move_to_pos(int(hip_setpoint))
-
-		time.sleep(1)
-
-
+	if fast:
+		knee.pos_setpoint = int(knee_setpoint)
+		hip.pos_setpoint = int(hip_setpoint)
+	else:
+		knee.move_to_pos(int(knee_setpoint))
+		hip.move_to_pos(int(hip_setpoint))
 
 sys.exit()
 
