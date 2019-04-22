@@ -1,44 +1,77 @@
+# import Crypto
+# from Crypto.PublicKey import RSA
+# from Crypto.Random import get_random_bytes
+# from Crypto.Cipher import AES
+# from Crypto.Cipher import PKCS1_OAEP
+#
+# aes_key = get_random_bytes(16)
+# cipher = AES.new(aes_key, AES.MODE_EAX)
+#
+# print(aes_key);
+#
+# key = RSA.generate(2048)
+# private_key = key.export_key()
+# file_out = open("private.pem", "wb")
+# file_out.write(private_key)
+#
+# public_key = key.publickey().export_key()
+# file_out = open("receiver.pem", "wb")
+# file_out.write(public_key)
+#
+# useKey = public_key.publickey()
+# encrypted = useKey.encrypt('encrypt this message', 32)
+# print(encrypted)
+# from Crypto.Cipher import AES
+# from Crypto.Random import get_random_bytes
+# from Crypto.PublicKey import RSA
+#
+# # generate a random AES key to encrypt
+# rand = get_random_bytes(16)
+# aes_key = AES.new(rand, AES.MODE_EAX)
+# f = open("aes.pem", "wb")
+# f.write(aes_key.export_key())
+# f.close()
+#
+# # generate a RSA key
+# key = RSA.generate(2048)
+# private_key = key.export_key()
+# f = open("private.pem", "wb")
+# f.write(private_key)
+# f.close()
+#
+# public_key = key.publickey().export_key()
+# f = open("receiver.pem", "wb")
+# f.write(public_key)
+# f.close()
+
+
+
+# from Crypto.Random import get_random_bytes
+from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
-from Crypto.Random import get_random_bytes
-from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.Cipher import AES
+from Crypto import Random
 
-key = RSA.generate(2048)
-private_key = key.export_key()
-file_out = open("private.pem", "wb")
-file_out.write(private_key)
+# aeskey = Random.new().read(32)
+# iv = Random.new().read(AES.block_size)
+# cipher = AES.new(aeskey, AES.MODE_CFB, iv)
 
-public_key = key.publickey().export_key()
-file_out = open("receiver.pem", "wb")
-file_out.write(public_key)
 
-data = "I met aliens in UFO. Here is the map.".encode("utf-8")
-file_out = open("encrypted_data.bin", "wb")
+aeskey =  Random.new().read(32)
+cipher = AES.new(aeskey, AES.MODE_EAX)
+msg = cipher.encrypt(b'Attack at dawn')
 
-recipient_key = RSA.import_key(open("receiver.pem").read())
-session_key = get_random_bytes(16)
+message = aeskey
+random_generator = Random.new().read
+rsakey = RSA.generate(1024, random_generator)
+cipher = PKCS1_OAEP.new(rsakey.publickey())
+ciphertext = cipher.encrypt(message)
 
-# Encrypt the session key with the public RSA key
-cipher_rsa = PKCS1_OAEP.new(recipient_key)
-enc_session_key = cipher_rsa.encrypt(session_key)
-
-# Encrypt the data with the AES session key
-cipher_aes = AES.new(session_key, AES.MODE_EAX)
-ciphertext, tag = cipher_aes.encrypt_and_digest(data)
-[ file_out.write(x) for x in (enc_session_key, cipher_aes.nonce, tag, ciphertext) ]
-
-file_in = open("encrypted_data.bin", "rb")
-
-private_key = RSA.import_key(open("private.pem").read())
-
-enc_session_key, nonce, tag, ciphertext = \
-   [ file_in.read(x) for x in (private_key.size_in_bytes(), 16, 16, -1) ]
-
-# Decrypt the session key with the private RSA key
+private_key = RSA.import_key(cipher)
 cipher_rsa = PKCS1_OAEP.new(private_key)
-session_key = cipher_rsa.decrypt(enc_session_key)
+aeskey2 = cipher_rsa.decrypt(ciphertext)
 
-# Decrypt the data with the AES session key
-cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
-for x in ciphertext:
-    data = cipher_aes.decrypt_and_verify(ciphertext, tag)
-    print(data.decode("utf-8"))
+cipher2 = AES.new(aeskey2, AES.MODE_EAX)
+data = cipher2.decrypt(msg)
+
+print(data)
