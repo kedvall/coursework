@@ -120,7 +120,7 @@ def puzzleThree():
 user_home = pathlib.Path.home()
 # HI! to not cause complete destruction to you system, to just test our code
 # copy the given testfolder into this location
-target_folder = "dev/cs460/finalProject/testFolder"
+target_folder = "dev/cs460/testFolder"
 start_path = os.path.join(user_home, target_folder)
 print("Running folder scan on " + start_path)
 
