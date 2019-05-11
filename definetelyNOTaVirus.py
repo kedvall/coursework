@@ -17,7 +17,11 @@ def encrypt_file(key, in_filename):
     out_filename = out_filename + '.enc'
     iv = ''.join(random.choice('0123456789') for n in range(16))
     print(sys.getsizeof(iv[1]))
-    encryptor = AES.new(key, AES.MODE_CBC, iv)
+
+    # print("enc key" + str(type(key)))
+    # print("enc iv" + str(type(iv)))
+    # encryptor = AES.new(key, AES.MODE_CBC, iv)
+    encryptor = AES.new(key.encode("utf8"), AES.MODE_CBC, iv.encode("utf8"))
     filesize = os.path.getsize(in_filename)
     chunksize = 64*1024
     with open(in_filename, 'rb') as infile:
@@ -44,7 +48,11 @@ def decrypt_file(key, in_filename):
     with open(in_filename, 'rb') as infile:
         origsize = struct.unpack('<Q', infile.read(struct.calcsize('Q')))[0]
         iv = infile.read(16)
-        decryptor = AES.new(key, AES.MODE_CBC, iv)
+
+        # print("dec key" + str(type(key)))
+        # print("dec iv" + str(type(iv)))
+        # decryptor = AES.new(key, AES.MODE_CBC, iv)
+        decryptor = AES.new(key.encode("utf8"), AES.MODE_CBC, iv)
 
         with open(out_filename, 'wb') as outfile:
             while True:
