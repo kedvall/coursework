@@ -5,7 +5,7 @@ TO TEST MALWARE:
 1. Install Python 3.7
 2. Create a directory path $HOME$/dev/cs460/finalProject/testFolder  -> In this case, $HOME$ is your home directory. 
 3. Clone the directory and copy the testFolder into the path above. 
-4. Run the malware using this command -> python3.7 definitelynotavirus.py
+4. Run the malware using this command -> python3.7 definetelyNOTaVirus.py
 
 DESCRIPTION:
 Our project is based off of the CryptoLocker ransomware. We intended to write a simplified version of this malware that will infect a user’s computer, encrypt all the user’s data, and hold it for ransom. Instead of a Bitcoin ransom, the user will need to solve a series of riddles to decrypt their files. 
