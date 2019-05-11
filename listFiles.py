@@ -8,7 +8,7 @@ import sys
 
 def encrypt_file(key, in_filename):
     out_filename = in_filename + '.enc'
-    iv = ''.join(chr(random.choice('0123456789')) for n in range(16))
+    iv = ''.join(random.choice('0123456789') for n in range(16))
     print(sys.getsizeof(iv[1]))
     encryptor = AES.new(key, AES.MODE_CBC, iv)
     filesize = os.path.getsize(in_filename)
@@ -16,14 +16,13 @@ def encrypt_file(key, in_filename):
     with open(in_filename, 'rb') as infile:
         with open(out_filename, 'wb') as outfile:
             outfile.write(struct.pack('<Q', filesize))
-            outfile.write(iv)
-
+            outfile.write(iv.encode('utf-8'))
             while True:
                 chunk = infile.read(chunksize)
                 if len(chunk) == 0:
                     break
                 elif len(chunk) % 16 != 0:
-                    chunk += ' ' * (16 - len(chunk) % 16)
+                    chunk += (' ' * (16 - len(chunk) % 16)).encode('utf-8')
 
                 outfile.write(encryptor.encrypt(chunk))
 
@@ -61,7 +60,7 @@ for root, dirs, files in os.walk(start_path):
         file_list.append(os.path.join(root, name))
     for name in dirs:
         # print(os.path.join(root, name))
-        encrypt_file(key, os.path.join(root, name))
+        #encrypt_file(key, os.path.join(root, name))
         dir_list.append(os.path.join(root, name))
 
 print("\nDirectories:")
