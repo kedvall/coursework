@@ -1,0 +1,1 @@
+qemu-system-i386 -boot menu=on,splash=/root/boot.bmp,splash-time=2000 -m 512 -drive file=c:/ece391/devel/ece391.qcow
