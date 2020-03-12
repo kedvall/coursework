@@ -1,0 +1,105 @@
+Data types:
+	- logic, integer, and time have 4 possible states
+	- Known value of 0 or 1
+	- OR don't care (x) or high impedance (z)
+
+Modules:
+	- Primary design unit in SV
+	- Multiple can be combined to form larger design
+	- Module-procedural block pair provides design description
+
+	- module declaration provides external interface to design
+	- contains pinout, interface description, and input-output port definitions
+
+Procedure blocks:
+	- Describe behavior of an entity or its structure (gates, wires, etc)
+	- 3 types, can be nested
+		- initial:
+			- initializes testbench assignments 
+			- executed ONCE at beginning of execution
+			- executes from begin to end without waiting
+			- non synthesizable
+		- always:
+			- Executes over and over again throughout execution
+			- when triggered ALL statements within begin and end are executed simultaneously
+
+			- 3 types:
+				- always_comb:
+					- forces combinational logic behavior
+					- no sensitivity needed
+				- always_latch:
+					- forcing latched logic behavior
+					- no sensitivity needed
+				- always_ff:
+					- forces synthesizable SEQUENTIAL logic
+					- NEEDS sensitivity list
+		- fork-join:
+			- Parallelizes statements contained within
+			- Used in testbench only. NON SYNTHESIZABLE
+
+	- Procedural blocks execute concurrently with respect to each other
+	- Only statement within sequential block (begin - end) execute sequentially
+	- if module has more than one statement:
+		- put in SEPERATE procedural block so they execute in parallel
+		- OR put in same procedural block with a sequential begin-end block
+
+Ports and Interfaces
+	- Interconnections between a module and the outside world
+	- 3 types:
+		- input:
+			- Has data type of Nets or Registers
+			- type logic in SV
+		- output:
+			- Has data type of Nets or registers
+			- type logic in SV
+		- inout:
+			- Has data type of Nets
+			- type logic in SV
+
+Assign Statement
+	- Can assign simple combinational logic outside of procedural block
+	- carried out continuously
+	- no sensitivity required
+
+
+Interface
+	- Module ports can be bundled together using interface block
+
+
+Modport
+	- Defines directional views of the ports
+
+
+Data Types:
+	- 3 types
+		- Nets:
+			- Represent physical wire in circuit
+			- Connect between components
+			- Do not hold value
+			- wire: Simple, interconnecting wire between design components
+			- syntax: wire; wire[MSB:LSB]
+			-supply0 tie to logic 0
+			-supply1 tie to logic power
+		- Registers:
+			- Variables used to store values assigned to them
+			- logic:
+				- unsigned variable 
+				- syntax: logic; logic [MSB:LSB]
+			- integer:
+				- signed variable
+				- 32 bits
+			- real:
+				- NON SYNTHESIZABLE
+				- double-precision floating point
+
+		- Constants:
+			- integer constants
+			- syntax: <sign><size>'<radix><value>
+				- "-" for negative, unsigned for pos
+				- size in bits (32 if unspecified)
+				- radix: b (binary), o (octal), d (decimal), h (hexadecimal)
+
+
+Hierarchical Design:
+	- Module can instantiate other modules as components of it
+	- One module can use different modules as components as well as instantiate multiple copies of the same module
