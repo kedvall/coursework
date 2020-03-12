@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "lab56pkg")
+set(lab56pkg_MAINTAINER "youbot <youbot@todo.todo>")
+set(lab56pkg_DEPRECATED "")
+set(lab56pkg_VERSION "0.0.0")
+set(lab56pkg_BUILD_DEPENDS "cv_bridge" "image_transport" "roscpp" "lab4pkg" "lab3pkg" "rospy" "sensor_msgs" "std_msgs" "ece470_ur3_driver")
+set(lab56pkg_RUN_DEPENDS "cv_bridge" "image_transport" "roscpp" "lab4pkg" "lab3pkg" "rospy" "sensor_msgs" "std_msgs" "ece470_ur3_driver")
+set(lab56pkg_BUILDTOOL_DEPENDS "catkin")

@@ -1,0 +1,8 @@
+prefix=/home/youbot/edvall2_catkin/devel
+
+Name: lab2pkg
+Description: Description of lab2pkg
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/youbot/edvall2_catkin/devel/lib 
+Requires: 

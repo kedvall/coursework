@@ -1,0 +1,8 @@
+prefix=/home/youbot/edvall2_catkin/devel
+
+Name: ur_modern_driver
+Description: Description of ur_modern_driver
+Version: 0.0.1
+Cflags: -I/home/youbot/edvall2_catkin/src/drivers/ur_modern_driver/include
+Libs: -L/home/youbot/edvall2_catkin/devel/lib 
+Requires: hardware_interface controller_manager actionlib control_msgs geometry_msgs roscpp sensor_msgs trajectory_msgs ur_msgs

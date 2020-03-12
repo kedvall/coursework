@@ -1,0 +1,8 @@
+prefix=/home/youbot/edvall2_catkin/devel
+
+Name: cv_camera
+Description: Description of cv_camera
+Version: 0.1.0
+Cflags: -I/home/youbot/edvall2_catkin/src/drivers/cv_camera/include
+Libs: -L/home/youbot/edvall2_catkin/devel/lib -lcv_camera
+Requires: image_transport roscpp cv_bridge sensor_msgs nodelet camera_info_manager
