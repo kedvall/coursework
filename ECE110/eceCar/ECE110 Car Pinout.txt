@@ -1,0 +1,15 @@
+Ultrasonic:
+Echo - 9
+Trig - 8
+
+H-Bridge
+16 - 5V
+8 - Vin
+
+Left Motor
+Black - Hbridge 3
+Red - Hbrdige 6
+
+Right Motor
+Black - Hbridge 14
+Red - Hbridge 11
