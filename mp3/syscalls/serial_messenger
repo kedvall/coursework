@@ -1,2 +1,0 @@
-write_buffer[0] = 254;
-ece391_write(7, write_buffer, 1);
