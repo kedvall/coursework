@@ -1,2 +1,2 @@
-# ece445
-Repo for ECE 445 robot
+# Coursework
+Repo for my coursework (UIUC and online courses)
