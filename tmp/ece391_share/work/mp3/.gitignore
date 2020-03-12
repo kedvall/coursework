@@ -1,0 +1,24 @@
+# Ignore ALL .o files
+*.o
+*.converted
+
+# Build files
+Makefile.dep
+bootimg
+filesys_img
+mp3.img
+to_fsdir
+
+# Run flag files
+inUse
+
+# Layout files for mac
+.DS_Store
+._.DS_Store
+
+# Other files
+NULL
+make_log.txt
+smake_log.txt
+filesys_img
+syscalls/game

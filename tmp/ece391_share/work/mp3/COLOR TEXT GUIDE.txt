@@ -1,0 +1,27 @@
+BACKG: 
+0-Black
+1-Blue
+2-Green
+3-Teal
+4-Red
+5-Magenta
+6-Light Brown
+7-Light Grey
+
+TEXT:
+0-Black
+1-Blue
+2-Green
+3-Teal
+4-Red
+5-Magenta
+6-Brown
+7-Light Grey
+8-Dark Grey
+9-Grey-Blue
+10-Bright Green
+11-Cyan
+12-Bright Red
+13-Pink
+14-Bright Yellow
+15-White
