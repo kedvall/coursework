@@ -163,10 +163,6 @@ DMA2_Stream3_IRQHandler(void);
 void __attribute__ ((weak, alias ("Default_Handler")))
 DMA2_Stream4_IRQHandler(void);
 void __attribute__ ((weak, alias ("Default_Handler")))
-ETH_IRQHandler(void);
-void __attribute__ ((weak, alias ("Default_Handler")))
-ETH_WKUP_IRQHandler(void);
-void __attribute__ ((weak, alias ("Default_Handler")))
 CAN2_TX_IRQHandler(void);
 void __attribute__ ((weak, alias ("Default_Handler")))
 CAN2_RX0_IRQHandler(void);
@@ -199,9 +195,23 @@ OTG_HS_IRQHandler(void);
 void __attribute__ ((weak, alias ("Default_Handler")))
 DCMI_IRQHandler(void);
 void __attribute__ ((weak, alias ("Default_Handler")))
-HASH_RNG_IRQHandler(void);
-void __attribute__ ((weak, alias ("Default_Handler")))
 FPU_IRQHandler(void);
+void __attribute__ ((weak, alias ("Default_Handler")))
+SPI4_IRQHandler(void);
+void __attribute__ ((weak, alias ("Default_Handler")))
+SAI1_IRQHandler(void);
+void __attribute__ ((weak, alias ("Default_Handler")))
+SAI2_IRQHandler(void);
+void __attribute__ ((weak, alias ("Default_Handler")))
+QUADSPI_IRQHandler(void);
+void __attribute__ ((weak, alias ("Default_Handler")))
+CEC_IRQHandler(void);
+void __attribute__ ((weak, alias ("Default_Handler")))
+SPDIF_RX_IRQHandler(void);
+void __attribute__ ((weak, alias ("Default_Handler")))
+I2C4_Event_IRQHandler(void);
+void __attribute__ ((weak, alias ("Default_Handler")))
+I2C4_Error_IRQHandler(void);
 
 // ----------------------------------------------------------------------------
 
@@ -312,8 +322,8 @@ pHandler __isr_vectors[] =
     DMA2_Stream2_IRQHandler,           // DMA2 Stream 2
     DMA2_Stream3_IRQHandler,           // DMA2 Stream 3
     DMA2_Stream4_IRQHandler,           // DMA2 Stream 4
-    ETH_IRQHandler,                    // Ethernet
-    ETH_WKUP_IRQHandler,               // Ethernet Wakeup through EXTI line
+    0,                                 // Reserved
+    0,                                 // Reserved
     CAN2_TX_IRQHandler,                // CAN2 TX
     CAN2_RX0_IRQHandler,               // CAN2 RX0
     CAN2_RX1_IRQHandler,               // CAN2 RX1
@@ -331,8 +341,23 @@ pHandler __isr_vectors[] =
     OTG_HS_IRQHandler,                 // USB OTG HS
     DCMI_IRQHandler,                   // DCMI
     0,                                 // Reserved
-    HASH_RNG_IRQHandler,               // Hash and Rng
+    0,                                 // Reserved
     FPU_IRQHandler,                    // FPU
+    0,                                 // Reserved
+    0,                                 // Reserved
+    SPI4_IRQHandler,                   // SPI4
+    0,                                 // Reserved
+    0,                                 // Reserved
+    SAI1_IRQHandler,                   // SAI1
+    0,                                 // Reserved
+    0,                                 // Reserved
+    0,                                 // Reserved
+    SAI2_IRQHandler,                   // SAI2
+    QUADSPI_IRQHandler,                // QuadSPI
+    CEC_IRQHandler,                    // CEC
+    SPDIF_RX_IRQHandler,               // SPDIF RX
+    I2C4_Event_IRQHandler,             // I2C 4 Event
+    I2C4_Error_IRQHandler,             // I2C 4 Error
 };
 
 // ----------------------------------------------------------------------------
