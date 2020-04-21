@@ -1,0 +1,3 @@
+/Users/kedvall/dev/coursework/C++Course1/HelloWorld/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/kedvall/dev/coursework/C++Course1/HelloWorld/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/kedvall/dev/coursework/C++Course1/HelloWorld/cmake-build-debug/CMakeFiles/HelloWorld.dir
