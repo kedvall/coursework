@@ -7,6 +7,7 @@ class Config(object):
     TESTING = False
     CSRF_ENABLED = True
     SECRET_KEY = 'This-is-my-super-secret-key'
+    SQLALCHEMY_DATABASE_URI = None
 
 class ProductionConfig(Config):
     DEBUG = False
